@@ -2,19 +2,32 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { loginUser, googleLogin } from "../services/auth";
+
+import axios from "axios";
+import { toast } from "sonner";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
+  
   const [password, setPassword] = useState("");
+  const [login, setLogin] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try{
-      const result = await loginUser(email, password);
-      alert("Login bem-sucedido! Token: " + result.token);
+      const response = await axios.post("http://localhost:5119/api/Auth/login", {
+        userName: login,
+        password: password
+      });
+
+      const token = response.data.token;
+      localStorage.setItem("authToken", token);
+
+      toast.success("Login bem-sucedido!");
+      setLogin("");
+      setPassword("");
     } catch (err: any){
-      alert(err.message || "Erro ao fazer login");
+      toast.error(err.message || "Erro ao fazer login");
     }
   };
 
@@ -28,8 +41,8 @@ export default function LoginForm() {
       <input
         type="email"
         placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={login}
+        onChange={(e) => setLogin(e.target.value)}
         className="w-full border p-2 rounded"
       />
       <input
@@ -41,9 +54,10 @@ export default function LoginForm() {
       />
       <button
         type="submit"
+        disabled={loading}
         className="w-full bg-[#338B97] text-white p-2 rounded hover:bg-[#255690]"
       >
-        Entrar
+        {loading ? "Entrando" : "Login"}
       </button>
 
       {/* Botão para login com Google */}
