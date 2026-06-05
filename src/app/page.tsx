@@ -1,3 +1,5 @@
+
+
 export default function Home() {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
@@ -7,6 +9,7 @@ export default function Home() {
       <p className="mt-4 text-sm sm:text-base md:text-lg text-gray-700">
         Welcome to your responsive Next.js + Tailwind app!
       </p>
+      
     </main>
   )
 }

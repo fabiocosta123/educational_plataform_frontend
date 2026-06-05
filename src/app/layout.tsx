@@ -1,10 +1,12 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import { Toaster } from "sonner";
+import "./globals.css"; 
 
 export const metadata: Metadata = {
-  title: "Educational Plataform",
+  title: "Anexa",
   description: "Plataforma educacional para cursos online",
   manifest: "/manifest.json",
-  themeColor: "#2563eb"
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({
@@ -18,7 +20,10 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#2563eb" />
       </head>
-      <body>{children}</body>
+      <body className="bg-gray-50 text-gray-900">
+        <Toaster richColors position="top-right" />
+        {children}
+      </body>
     </html>
   );
 }
