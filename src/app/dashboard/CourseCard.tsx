@@ -1,24 +1,17 @@
+"use client";
+
 import ProgressBar from "./ProgressBar";
 
-interface Course {
-  id: number;
-  title: string;
-  description: string;
-  progress: number;
-}
-
-interface CourseCardProps {
-  course: Course;
-}
-
-export default function CourseCard({ course }: CourseCardProps) {
+export default function CourseCard({ course }: any) {
   return (
-    <div className="course-card">
-      <h4>{course.title}</h4>
-      <p>{course.description}</p>
+    <div className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition">
+      <h3 className="text-lg font-bold text-gray-800 mb-2">{course.title}</h3>
+      <p className="text-sm text-gray-500 mb-4">Próxima Aula: {course.nextLesson}</p>
       <ProgressBar progress={course.progress} />
-      <p>{course.progress}% completed</p>
-      <button>Continue Course</button>
+      <p className="text-sm text-gray-600 mt-2">{course.progress}% concluído</p>
+      <button className="mt-4 w-full bg-[#338B97] text-white py-2 rounded-md hover:bg-[#255690] transition">
+        Continuar
+      </button>
     </div>
   );
 }
