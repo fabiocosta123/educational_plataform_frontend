@@ -4,11 +4,13 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import Link from "next/link";
+import Cleave from "cleave.js/react";
 
 export default function RegisterForm() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const isPasswordValid = password.length >= 6;
     const [cpf, setCpf] = useState("");
     const [birthDate, setBirthDate] = useState("");
     const [loading, setLoading] = useState(false);
@@ -41,6 +43,7 @@ export default function RegisterForm() {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 w-80">
+            {/* Nome */}
             <input
                 type="text"
                 placeholder="Nome"
@@ -48,49 +51,63 @@ export default function RegisterForm() {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full border p-2 rounded"
             />
+            {/* Perfil */}
             <select
                 value={profile}
-                onChange={(e) => setProfile(Number(e.target.value))}
-                className="w-full border p-2 rounded"
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setProfile(Number(e.target.value))}
+                className={`w-full border p-2 rounded ${profile === 0 ? "" : "border-green-500"}`}
             >
                 <option value={0}>Aluno</option>
                 <option value={1}>Professor</option>
                 <option value={2}>Administrador</option>
             </select>
 
-            <input
-                type="text"
-                placeholder="CPF"
+            {/*CPF */}
+            <Cleave
+                options={{ delimiters: [".", ".", "-"], blocks: [3, 3, 3, 2], numericOnly: true }}
                 value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
-                className="w-full border p-2 rounded"
-            />
+                placeholder="CPF"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCpf(e.target.value)}
+                className={`w-full border p-2 rounded ${cpf.length === 14 ? "border-green-500" : cpf.length === 0 ? "" : "border-red-500"
+                    }`}
+            />         
+
+
+
+            {/*Data de nascimento */}
             <input
                 type="date"
                 placeholder="Data de Nascimento"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full border p-2 rounded"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBirthDate(e.target.value)}
+                className={`w-full border p-2 rounded ${birthDate.length === 0 ? "" : "border-green-500"}`}
             />
 
+            {/*Email */}
             <input
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border p-2 rounded"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                className={`w-full border p-2 rounded ${email.length === 0 ? "" : /\S+@\S+\.\S+/.test(email) ? "border-green-500" : "border-red-500"
+                    }`}
             />
+
+            {/*Senha */}
             <input
                 type="password"
-                placeholder="Senha"
+                placeholder="Senha (mínimo 6 digitos)"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border p-2 rounded    "
-            />
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                className={`w-full border p-2 rounded ${password.length === 0 ? "" : isPasswordValid ? "border-green-500" : "border-red-500"
+                    }`} />
+
+            {/*Botão */}
             <button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-[#338B97] text-white p-2 rounded hover:bg-[#255690]"
+                disabled={!isPasswordValid || loading}
+                className={`w-full p-2 rounded ${!isPasswordValid ? "bg-gray-400 cursor-not-allowed" : "bg-[#338B97] hover:bg-[#255690]"
+                    } text-white`}
             >
                 {loading ? "Registrando..." : "Registrar"}
             </button>
