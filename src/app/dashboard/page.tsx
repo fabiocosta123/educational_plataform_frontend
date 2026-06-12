@@ -16,7 +16,7 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#163E72] text-white p-6 space-y-6">
+      <aside className="hidden md:block w-64 bg-[#163E72] text-white p-6 space-y-6">
         <h2 className="text-2xl font-bold mb-6">Portal do Aluno</h2>
         <nav className="space-y-3">
           {["Início", "Meus Cursos", "Atividades", "Calendário", "Boletim", "Financeiro", "Certificados", "Fórum"].map((item) => (
@@ -29,12 +29,12 @@ export default function DashboardPage() {
 
       {/* Main content */}
       <section className="flex-1 p-8">
-        <header className="flex justify-between items-center mb-8">
-          <div>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <h1 className="text-3xl font-bold text-gray-800">Olá, Ana Silva!</h1>
             <p className="text-gray-500">27 de Outubro de 2023</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4c">
             <button className="text-gray-600 hover:text-gray-800">
               <i className="fas fa-search"></i>
             </button>
