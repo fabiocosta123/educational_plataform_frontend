@@ -89,12 +89,7 @@ export default function LoginForm() {
         Esqueci minha senha
       </div>
 
-      {/* Link para cadastro */}
-      <div className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
-        <Link href="/register">
-          Não tem uma conta? Cadastre-se
-        </Link>
-      </div>
+    
     </form>
   );
 }
