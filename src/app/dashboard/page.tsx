@@ -14,7 +14,7 @@ export default function StudentDashboard() {
   const [totalLessons, setTotalLessons] = useState(0);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
 
-  const user: User = { id: 1, name: "Fabio Costa"};
+  const user: User = { id: 5, name: "Fabio Costa", role: "Aluno"};
 
   const today = new Date().toLocaleDateString("pt-BR", {
     day: "numeric",
