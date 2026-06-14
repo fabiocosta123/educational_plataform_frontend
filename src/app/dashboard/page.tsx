@@ -1,13 +1,20 @@
 "use client";
+
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { User, Enrollment } from "../../types/interfaces";
+import { toast } from "react-toastify";
 
 export default function StudentDashboard() {
   const [progress, setProgress] = useState(72);
-  const [completedCourses, setCompletedCourses] = useState(5);
-  const [totalCourses, setTotalCourses] = useState(7);
-  const [completedLessons, setCompletedLessons] = useState(145);
-  const [totalLessons, setTotalLessons] = useState(201);
+  const [completedCourses, setCompletedCourses] = useState(0);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState(0);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+
+  const user: User = { id: 1, name: "Fabio Costa"};
 
   const today = new Date().toLocaleDateString("pt-BR", {
     day: "numeric",
@@ -15,20 +22,44 @@ export default function StudentDashboard() {
     year: "numeric",
   });
 
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      try {
+        const response = await axios.get<Enrollment[]>(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment?userId=${user.id}`
+        );
+        setEnrollments(response.data);
+
+        setTotalCourses(response.data.length);
+        setCompletedCourses(response.data.filter(e => e.status === "Concluido").length);
+        setProgress(
+          Math.round(
+            response.data.reduce((acc, e) => acc + (e.progressPercentage || 0), 0) /
+           (response.data.length || 1)
+          )
+        );
+        toast.success("Cursos carregados com sucesso!")
+      } catch {
+        toast.error("Erro ao carregar cursos matriculados")
+      }
+    };
+    fetchEnrollments();
+  }, [user.id])
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <aside className="w-64 bg-[#163E72] text-white flex flex-col p-6">
         <h2 className="text-2xl font-bold mb-8">Portal do Aluno</h2>
         <nav className="flex flex-col gap-4">
-          <Link href="#" className="hover:text-[#66BCA1]">Início</Link>
-          <Link href="#" className="hover:text-[#66BCA1]">Meus Cursos</Link>
-          <Link href="#" className="hover:text-[#66BCA1]">Atividades</Link>
-          <Link href="#" className="hover:text-[#66BCA1]">Calendário</Link>
-          <Link href="#" className="hover:text-[#66BCA1]">Boletim</Link>
-          <Link href="#" className="hover:text-[#66BCA1]">Financeiro</Link>
-          <Link href="#" className="hover:text-[#66BCA1]">Certificados</Link>
-          <Link href="#" className="hover:text-[#66BCA1]">Fórum</Link>
+          <Link href="/dashboard" className="hover:text-[#66BCA1]">Início</Link>
+          <Link href="/dashboard/courses" className="hover:text-[#66BCA1]">Meus Cursos</Link>
+          <Link href="/dashboard/activities" className="hover:text-[#66BCA1]">Atividades</Link>
+          <Link href="/dashboard/calendar" className="hover:text-[#66BCA1]">Calendário</Link>
+          <Link href="/dashboard/report" className="hover:text-[#66BCA1]">Boletim</Link>
+          <Link href="/dashboard/finance" className="hover:text-[#66BCA1]">Financeiro</Link>
+          <Link href="/dashboard/certificates" className="hover:text-[#66BCA1]">Certificados</Link>
+          <Link href="/dashboard/forum" className="hover:text-[#66BCA1]">Fórum</Link>
         </nav>
       </aside>
 
@@ -37,12 +68,12 @@ export default function StudentDashboard() {
         {/* Header com nome e avatar */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-[#163E72]">Olá, Ana Silva!</h1>
+            <h1 className="text-3xl font-bold text-[#163E72]">Olá, {user.name}</h1>
             <p className="text-gray-600">{today}</p>
           </div>
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 rounded-full bg-[#338B97] text-white flex items-center justify-center text-lg font-bold">
-              AS
+              {user.name.split(" ").map(n => n[0]).join("")}
             </div>
           </div>
         </div>
@@ -92,23 +123,19 @@ export default function StudentDashboard() {
         {/* Cursos matriculados */}
         <h2 className="text-xl font-bold text-[#163E72] mb-4">Meus Cursos Matriculados</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { title: "Design Gráfico Avançado", progress: 85, next: "Módulo 4, Aula 10" },
-            { title: "Marketing Digital: Estratégias", progress: 68, next: "Módulo 4, Aula 8" },
-            { title: "Programação em Python", progress: 42, next: "Módulo 3, Aula 5" },
-            { title: "Gestão de Projetos Ágeis", progress: 91, next: "Módulo 5, Aula 12" },
-          ].map((course, i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-bold text-[#163E72] mb-2">{course.title}</h3>
-              <p className="text-gray-600 mb-2">Próxima Aula: {course.next}</p>
+        {enrollments.map((course) => (
+            <div key={course.id} className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-bold text-[#163E72] mb-2">{course.courseTitle}</h3>
+              <p className="text-gray-600 mb-2">Status: {course.status}</p>
               <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                 <div
-                  className={`h-3 rounded-full ${course.progress > 70 ? "bg-green-500" : "bg-yellow-500"}`}
-                  style={{ width: `${course.progress}%` }}
+                  className="h-3 rounded-full bg-green-500"
+                  style={{ width: `${course.progressPercentage || 0}%` }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-600 mb-4">{course.progress}% concluído</p>
-              <button className="bg-[#338B97] text-white px-4 py-2 rounded-lg hover:bg-[#255690] transition">
+              <p className="text-sm text-gray-600 mb-4">{course.progressPercentage || 0}% concluído</p>
+              <button className="bg-[#338B97] text-white px-4 py-2 rounded-lg hover:bg-[#255690] transition"
+              onClick={() => toast.info(`Continuando curso: ${course.courseTitle}`)}>
                 Continuar
               </button>
             </div>
