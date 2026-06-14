@@ -11,13 +11,15 @@ export default function Header() {
     <header className="w-full bg-white shadow-md py-4 px-6 sm:px-8 flex justify-between items-center">
       {/* Logo + Nome */}
       <div className="flex items-center gap-3">
-        <Image
-          src="/img/logoAnexa.png"
-          alt="Logo Anexa"
-          width={100}
-          height={100}
-        />
-        <span className="text-[#163E72] font-bold text-xl">Anexa</span>
+        <Link href="/home">
+          <Image
+            src="/img/logoAnexa.png"
+            alt="Logo Anexa"
+            width={130}
+            height={100}
+          />
+        </Link>
+        {/* <span className="text-[#163E72] font-bold text-xl">Anexa</span> */}
       </div>
 
       {/* Botão hamburguer (mobile) */}
