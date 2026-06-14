@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import Header from "./components/home/Header";
 import Footer from "./components/home/Footer";
-import "./globals.css"; 
+import "./globals.css";
+import { AuthProvider } from "./hooks/useAuth";
 
 export const metadata: Metadata = {
   title: "Anexa",
@@ -23,11 +24,15 @@ export default function RootLayout({
         <meta name="theme-color" content="#2563eb" />
       </head>
       <body className="bg-gray-50 text-gray-900">
-        <Header />
+       <AuthProvider>
+         <Header />
         <Toaster richColors position="top-right" />
-       <div className="flex-1"> {children}</div>
+        <div className="flex-1">
+          {children}
+        </div>
 
-       <Footer />
+        <Footer />
+       </AuthProvider>
       </body>
     </html>
   );

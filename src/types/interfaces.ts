@@ -7,6 +7,15 @@ export interface Course {
 export interface User {
     id: number;
     name: string;
+    email?: string;
+    role: string;
+}
+
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  setUser: (user: User | null) => void;
+  logout: () => void;
 }
 
 export interface Enrollment {
@@ -18,3 +27,4 @@ export interface Enrollment {
     progressPercentage?: number;
     status?: string;
 }
+

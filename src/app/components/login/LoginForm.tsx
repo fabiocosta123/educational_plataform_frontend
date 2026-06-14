@@ -5,9 +5,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "@/app/hooks/useAuth";
+import { decode } from "punycode";
+
+export interface JwtPayload {
+    nameid: string;
+    unique_name: string;
+    role: string;
+}
 
 export default function LoginForm() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const [password, setPassword] = useState("");
   const isPasswordValid = password.length >= 6;
   const [login, setLogin] = useState("");
@@ -17,13 +27,22 @@ export default function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try{
-      const response = await axios.post("http://localhost:5119/api/Auth/login", {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/Auth/login`, {
         userName: login,
         password: password
       });
 
       const token = response.data.token;
       localStorage.setItem("authToken", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      const decoded = jwtDecode<JwtPayload>(token);
+
+      setUser({
+        id: parseInt(decoded.nameid),
+        name: decoded.unique_name,
+        role: decoded.role
+      })
 
       toast.success("Login bem-sucedido!");
       setLogin("");
