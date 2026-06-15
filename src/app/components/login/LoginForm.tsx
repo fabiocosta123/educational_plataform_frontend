@@ -7,7 +7,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "@/app/hooks/useAuth";
-import { decode } from "punycode";
+import Cookies from "js-cookie";
+
 
 export interface JwtPayload {
     nameid: string;
@@ -33,7 +34,8 @@ export default function LoginForm() {
       });
 
       const token = response.data.token;
-      localStorage.setItem("authToken", token);
+      
+      Cookies.set("token", token, {expires: 7})
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       const decoded = jwtDecode<JwtPayload>(token);
