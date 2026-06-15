@@ -6,6 +6,7 @@ import axios from "axios";
 import { Enrollment } from "../../types/interfaces";
 import { toast } from "react-toastify";
 import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export default function StudentDashboard() {
   const [completedLessons, setCompletedLessons] = useState(0);
   const [totalLessons, setTotalLessons] = useState(0);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [loading] = useState(false);
 
   const today = new Date().toLocaleDateString("pt-BR", {
     day: "numeric",
@@ -22,13 +24,19 @@ export default function StudentDashboard() {
     year: "numeric",
   });
 
+  const router = useRouter();
+
   useEffect(() => {
-    if (!user) return;
+    //if (!user) return;
+    if (!user && !loading) {
+      router.push("/login");
+      return;
+    }
 
     const fetchEnrollments = async () => {
       try {
         const response = await axios.get<Enrollment[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment?userId=${user.id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment?userId=${user!.id}`
         );
 
         const data = response.data;
@@ -58,10 +66,10 @@ export default function StudentDashboard() {
     };
 
     fetchEnrollments();
-  }, [user?.id]);
+  }, [user?.id, loading, router]);
 
-  if (!user) {
-    return <p>Carregando usuário...</p>;
+  if(!user && !loading){
+    return null;
   }
 
   return (
@@ -86,12 +94,12 @@ export default function StudentDashboard() {
         {/* Header com nome e avatar */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-[#163E72]">Olá, {user.name}</h1>
+            <h1 className="text-3xl font-bold text-[#163E72]">Olá, {user!.name}</h1>
             <p className="text-gray-600">{today}</p>
           </div>
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 rounded-full bg-[#338B97] text-white flex items-center justify-center text-lg font-bold">
-              {user.name.split(" ").map(n => n[0]).join("")}
+              {user!.name.split(" ").map(n => n[0]).join("")}
             </div>
           </div>
         </div>
