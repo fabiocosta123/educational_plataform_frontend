@@ -11,11 +11,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     const token = Cookies.get("token");
     if (token) {
-      // Tenta buscar dados reais do usuário
+      
       axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/Auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, setUser, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

@@ -7,6 +7,7 @@ import { Enrollment } from "../../types/interfaces";
 import { toast } from "react-toastify";
 import { useAuth } from "../hooks/useAuth";
 import { useRouter } from "next/navigation";
+import LogoutButton  from "../components/logoutButton/LogoutButton"
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -27,7 +28,7 @@ export default function StudentDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    //if (!user) return;
+   
     if (!user && !loading) {
       router.push("/login");
       return;
@@ -75,19 +76,7 @@ export default function StudentDashboard() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#163E72] text-white flex flex-col p-6">
-        <h2 className="text-2xl font-bold mb-8">Portal do Aluno</h2>
-        <nav className="flex flex-col gap-4">
-          <Link href="/dashboard" className="hover:text-[#66BCA1]">Início</Link>
-          <Link href="/dashboard/courses" className="hover:text-[#66BCA1]">Meus Cursos</Link>
-          <Link href="/dashboard/activities" className="hover:text-[#66BCA1]">Atividades</Link>
-          <Link href="/dashboard/calendar" className="hover:text-[#66BCA1]">Calendário</Link>
-          <Link href="/dashboard/report" className="hover:text-[#66BCA1]">Boletim</Link>
-          <Link href="/dashboard/finance" className="hover:text-[#66BCA1]">Financeiro</Link>
-          <Link href="/dashboard/certificates" className="hover:text-[#66BCA1]">Certificados</Link>
-          <Link href="/dashboard/forum" className="hover:text-[#66BCA1]">Fórum</Link>
-        </nav>
-      </aside>
+     
 
       {/* Conteúdo principal */}
       <main className="flex-1 p-8">

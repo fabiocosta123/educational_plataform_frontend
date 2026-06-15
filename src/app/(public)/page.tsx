@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
-
-
+import HeroSection from "../components/home/Hero-Section";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#163E72] via-[#255690] to-[#66BCA1] flex flex-col items-center justify-center p-8 text-center">
+      <HeroSection />
+      
       {/* Título principal */}
       <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg">
         Curso de Teologia Cristã
