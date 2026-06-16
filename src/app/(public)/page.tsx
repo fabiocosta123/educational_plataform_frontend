@@ -5,16 +5,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-[#163E72] via-[#255690] to-[#66BCA1] flex flex-col items-center justify-center p-8 text-center">
       <HeroSection />
       
-      {/* Título principal */}
-      <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg">
-        Curso de Teologia Cristã
-      </h1>
-
-      {/* Subtítulo */}
-      <p className="mt-6 text-lg sm:text-xl md:text-2xl text-gray-100 max-w-2xl">
-        Explore as Escrituras, aprofunde sua fé e desenvolva uma base sólida em teologia.
-      </p>
-
+     
       {/* Botões de ação */}
       <div className="mt-10 flex flex-col sm:flex-row gap-4">
         <button className="px-6 py-3 bg-[#338B97] text-white rounded-lg shadow-md hover:bg-[#255690] transition">

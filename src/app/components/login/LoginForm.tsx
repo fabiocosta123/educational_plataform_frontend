@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import axios from "axios";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
@@ -110,6 +111,12 @@ export default function LoginForm() {
       <div className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
         Esqueci minha senha
       </div>
+
+      <Link 
+      href="/"
+        className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
+        Voltar
+      </Link>
 
     
     </form>

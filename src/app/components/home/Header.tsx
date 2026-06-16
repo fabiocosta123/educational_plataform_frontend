@@ -11,7 +11,7 @@ export default function Header() {
     <header className="w-full bg-white shadow-md py-4 px-6 sm:px-8 flex justify-between items-center">
       {/* Logo + Nome */}
       <div className="flex items-center gap-3">
-        <Link href="/home">
+        <Link href="/">
           <Image
             src="/img/logoAnexa.png"
             alt="Logo Anexa"
