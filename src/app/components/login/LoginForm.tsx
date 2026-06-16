@@ -3,11 +3,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import axios from "axios";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
-import { useAuth } from "@/app/hooks/useAuth";
-import { decode } from "punycode";
+import { useAuth } from "../../hooks/useAuth";
+
+import Cookies from "js-cookie";
+
 
 export interface JwtPayload {
     nameid: string;
@@ -33,7 +36,8 @@ export default function LoginForm() {
       });
 
       const token = response.data.token;
-      localStorage.setItem("authToken", token);
+      
+      Cookies.set("token", token, {expires: 7})
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       const decoded = jwtDecode<JwtPayload>(token);
@@ -107,6 +111,12 @@ export default function LoginForm() {
       <div className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
         Esqueci minha senha
       </div>
+
+      <Link 
+      href="/"
+        className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
+        Voltar
+      </Link>
 
     
     </form>

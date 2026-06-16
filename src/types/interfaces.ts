@@ -14,6 +14,8 @@ export interface User {
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAuthenticated: boolean;
+  //login: (credentials: LoginData) => Promise<void>;
   setUser: (user: User | null) => void;
   logout: () => void;
 }
@@ -23,8 +25,10 @@ export interface Enrollment {
     courseId: number;
     courseTitle: string;
     userId: number;
-    userName: string;
+    userName?: string;
     progressPercentage?: number;
+    completedLessons?: number;
+    totalLessons?: number;
     status?: string;
 }
 

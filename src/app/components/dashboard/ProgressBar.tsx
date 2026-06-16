@@ -1,17 +1,11 @@
-interface ProgressBarProps{
-    progress: number;
-}
-
-export default function ProgressBar({ progress }: ProgressBarProps) {
-  let color = "red";
-  if (progress >= 70) color = "green";
-  else if (progress >= 30) color = "orange";
-
+export default function ProgressBar({ progress }: { progress: number }) {
   return (
-    <div className="progress-bar">
+    <div className="w-full bg-gray-200 rounded-full h-3">
       <div
-        className="progress"
-        style={{ width: `${progress}%`, backgroundColor: color }}
+        className={`h-3 rounded-full transition-all ${
+          progress >= 70 ? "bg-green-500" : progress >= 40 ? "bg-yellow-500" : "bg-red-500"
+        }`}
+        style={{ width: `${progress}%` }}
       ></div>
     </div>
   );

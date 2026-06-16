@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import jwt from "jsonwebtoken";
 
 export function middleware(request: NextRequest){
     const token = request.cookies.get("token")?.value;
 
-   const publicRoutes = ["/", "/login", "/register"];
+    const protectedRoutes = ["/dashboard", "/profile", "/my-courses"]
 
-    if (!publicRoutes.includes(request.nextUrl.pathname)){
+    if (protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))){
         if (!token){
+            return NextResponse.redirect(new URL("/login", request.url));
+        }
+
+        try {
+            jwt.verify(token, process.env.JWT_SECRET!);
+            return NextResponse.next();
+        } catch {
             return NextResponse.redirect(new URL("/login", request.url));
         }
     }
@@ -14,5 +22,5 @@ export function middleware(request: NextRequest){
 }
 
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+    matcher: ["/dashboard/:path*", "/profile/:path*", "/my-courses/:path*"]
 }

@@ -3,18 +3,21 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { User, Enrollment } from "../../types/interfaces";
+import { Enrollment } from "../../types/interfaces";
 import { toast } from "react-toastify";
+import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/navigation";
+import LogoutButton  from "../components/logoutButton/LogoutButton"
 
 export default function StudentDashboard() {
-  const [progress, setProgress] = useState(72);
+  const { user } = useAuth();
+  const [progress, setProgress] = useState(0);
   const [completedCourses, setCompletedCourses] = useState(0);
   const [totalCourses, setTotalCourses] = useState(0);
   const [completedLessons, setCompletedLessons] = useState(0);
   const [totalLessons, setTotalLessons] = useState(0);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-
-  const user: User = { id: 5, name: "Fabio Costa", role: "Aluno"};
+  const [loading] = useState(false);
 
   const today = new Date().toLocaleDateString("pt-BR", {
     day: "numeric",
@@ -22,58 +25,70 @@ export default function StudentDashboard() {
     year: "numeric",
   });
 
+  const router = useRouter();
+
   useEffect(() => {
+   
+    if (!user && !loading) {
+      router.push("/login");
+      return;
+    }
+
     const fetchEnrollments = async () => {
       try {
         const response = await axios.get<Enrollment[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment?userId=${user.id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment?userId=${user!.id}`
         );
-        setEnrollments(response.data);
 
-        setTotalCourses(response.data.length);
-        setCompletedCourses(response.data.filter(e => e.status === "Concluido").length);
+        const data = response.data;
+        setEnrollments(data);
+
+        setTotalCourses(data.length);
+        setCompletedCourses(data.filter(e => e.status === "Concluido").length);
+
         setProgress(
           Math.round(
-            response.data.reduce((acc, e) => acc + (e.progressPercentage || 0), 0) /
-           (response.data.length || 1)
+            data.reduce((acc, e) => acc + (e.progressPercentage || 0), 0) /
+            (data.length || 1)
           )
         );
-        toast.success("Cursos carregados com sucesso!")
+
+        setCompletedLessons(
+          data.reduce((acc, e) => acc + (e.completedLessons || 0), 0)
+        );
+        setTotalLessons(
+          data.reduce((acc, e) => acc + (e.totalLessons || 0), 0)
+        );
+
+        toast.success("Cursos carregados com sucesso!");
       } catch {
-        toast.error("Erro ao carregar cursos matriculados")
+        toast.error("Erro ao carregar cursos matriculados");
       }
     };
+
     fetchEnrollments();
-  }, [user.id])
+  }, [user?.id, loading, router]);
+
+  if(!user && !loading){
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#163E72] text-white flex flex-col p-6">
-        <h2 className="text-2xl font-bold mb-8">Portal do Aluno</h2>
-        <nav className="flex flex-col gap-4">
-          <Link href="/dashboard" className="hover:text-[#66BCA1]">Início</Link>
-          <Link href="/dashboard/courses" className="hover:text-[#66BCA1]">Meus Cursos</Link>
-          <Link href="/dashboard/activities" className="hover:text-[#66BCA1]">Atividades</Link>
-          <Link href="/dashboard/calendar" className="hover:text-[#66BCA1]">Calendário</Link>
-          <Link href="/dashboard/report" className="hover:text-[#66BCA1]">Boletim</Link>
-          <Link href="/dashboard/finance" className="hover:text-[#66BCA1]">Financeiro</Link>
-          <Link href="/dashboard/certificates" className="hover:text-[#66BCA1]">Certificados</Link>
-          <Link href="/dashboard/forum" className="hover:text-[#66BCA1]">Fórum</Link>
-        </nav>
-      </aside>
+     
 
       {/* Conteúdo principal */}
       <main className="flex-1 p-8">
         {/* Header com nome e avatar */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-[#163E72]">Olá, {user.name}</h1>
+            <h1 className="text-3xl font-bold text-[#163E72]">Olá, {user!.name}</h1>
             <p className="text-gray-600">{today}</p>
           </div>
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 rounded-full bg-[#338B97] text-white flex items-center justify-center text-lg font-bold">
-              {user.name.split(" ").map(n => n[0]).join("")}
+              {user!.name.split(" ").map(n => n[0]).join("")}
             </div>
           </div>
         </div>
@@ -123,7 +138,7 @@ export default function StudentDashboard() {
         {/* Cursos matriculados */}
         <h2 className="text-xl font-bold text-[#163E72] mb-4">Meus Cursos Matriculados</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {enrollments.map((course) => (
+          {enrollments.map((course) => (
             <div key={course.id} className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-lg font-bold text-[#163E72] mb-2">{course.courseTitle}</h3>
               <p className="text-gray-600 mb-2">Status: {course.status}</p>
@@ -134,8 +149,10 @@ export default function StudentDashboard() {
                 ></div>
               </div>
               <p className="text-sm text-gray-600 mb-4">{course.progressPercentage || 0}% concluído</p>
-              <button className="bg-[#338B97] text-white px-4 py-2 rounded-lg hover:bg-[#255690] transition"
-              onClick={() => toast.info(`Continuando curso: ${course.courseTitle}`)}>
+              <button
+                className="bg-[#338B97] text-white px-4 py-2 rounded-lg hover:bg-[#255690] transition"
+                onClick={() => toast.info(`Continuando curso: ${course.courseTitle}`)}
+              >
                 Continuar
               </button>
             </div>
