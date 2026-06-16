@@ -57,9 +57,10 @@ export default function RegisterForm() {
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setProfile(Number(e.target.value))}
                 className={`w-full border p-2 rounded ${profile === 0 ? "" : "border-green-500"}`}
             >
-                <option value={0}>Aluno</option>
-                <option value={1}>Professor</option>
-                <option value={2}>Administrador</option>
+                <option value={0}>Selecione um perfil</option>
+                <option value={1}>Aluno</option>
+                <option value={2}>Professor</option>
+                <option value={3}>Coordenador</option>
             </select>
 
             {/*CPF */}

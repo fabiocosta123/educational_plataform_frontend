@@ -2,6 +2,7 @@ export interface Course {
     id: number;
     title: string;
     description: string;
+    studentsCount?: number;
 }
 
 export interface User {
@@ -9,6 +10,8 @@ export interface User {
     name: string;
     email?: string;
     role: string;
+    profile: number;
+    courses?: Course[];
 }
 
 export interface AuthContextType {
