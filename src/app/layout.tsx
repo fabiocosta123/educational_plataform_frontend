@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
-import "./globals.css"; 
+import { AuthProvider } from "./hooks/useAuth";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Anexa",
@@ -14,6 +15,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  
   return (
     <html lang="pt-br">
       <head>
@@ -21,8 +23,10 @@ export default function RootLayout({
         <meta name="theme-color" content="#2563eb" />
       </head>
       <body className="bg-gray-50 text-gray-900">
-        <Toaster richColors position="top-right" />
-        {children}
+        <AuthProvider>
+          <Toaster richColors position="top-right" />
+          {children}
+        </AuthProvider>       
       </body>
     </html>
   );

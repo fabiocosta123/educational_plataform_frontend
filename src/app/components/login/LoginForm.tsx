@@ -1,13 +1,26 @@
 "use client";
 
-import Link from "next/link";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import axios from "axios";
 import { toast } from "sonner";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../../hooks/useAuth";
+
+import Cookies from "js-cookie";
+
+
+export interface JwtPayload {
+    nameid: string;
+    unique_name: string;
+    role: string;
+}
 
 export default function LoginForm() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const [password, setPassword] = useState("");
   const isPasswordValid = password.length >= 6;
   const [login, setLogin] = useState("");
@@ -17,13 +30,23 @@ export default function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try{
-      const response = await axios.post("http://localhost:5119/api/Auth/login", {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/Auth/login`, {
         userName: login,
         password: password
       });
 
       const token = response.data.token;
-      localStorage.setItem("authToken", token);
+      
+      Cookies.set("token", token, {expires: 7})
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      const decoded = jwtDecode<JwtPayload>(token);
+
+      setUser({
+        id: parseInt(decoded.nameid),
+        name: decoded.unique_name,
+        role: decoded.role
+      })
 
       toast.success("Login bem-sucedido!");
       setLogin("");
@@ -89,12 +112,13 @@ export default function LoginForm() {
         Esqueci minha senha
       </div>
 
-      {/* Link para cadastro */}
-      <div className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
-        <Link href="/register">
-          Não tem uma conta? Cadastre-se
-        </Link>
-      </div>
+      <Link 
+      href="/"
+        className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
+        Voltar
+      </Link>
+
+    
     </form>
   );
 }

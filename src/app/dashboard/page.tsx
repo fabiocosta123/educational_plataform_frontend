@@ -1,72 +1,164 @@
 "use client";
 
-import CircularProgress from "./CircularProgress";
-import CourseCard from "./CourseCard";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Enrollment } from "../../types/interfaces";
+import { toast } from "react-toastify";
+import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/navigation";
+import LogoutButton  from "../components/logoutButton/LogoutButton"
 
+export default function StudentDashboard() {
+  const { user } = useAuth();
+  const [progress, setProgress] = useState(0);
+  const [completedCourses, setCompletedCourses] = useState(0);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState(0);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [loading] = useState(false);
 
+  const today = new Date().toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-export default function DashboardPage() {
-  const courses = [
-    { id: 1, title: "Design Gráfico Avançado", progress: 85, nextLesson: "Módulo 4, Aula 10" },
-    { id: 2, title: "Marketing Digital: Estratégias", progress: 68, nextLesson: "Módulo 4, Aula 8" },
-    { id: 3, title: "Programação em Python", progress: 42, nextLesson: "Módulo 3, Aula 5" },
-    { id: 4, title: "Gestão de Projetos Ágeis", progress: 91, nextLesson: "Módulo 5, Aula 12" },
-  ];
+  const router = useRouter();
+
+  useEffect(() => {
+   
+    if (!user && !loading) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchEnrollments = async () => {
+      try {
+        const response = await axios.get<Enrollment[]>(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment?userId=${user!.id}`
+        );
+
+        const data = response.data;
+        setEnrollments(data);
+
+        setTotalCourses(data.length);
+        setCompletedCourses(data.filter(e => e.status === "Concluido").length);
+
+        setProgress(
+          Math.round(
+            data.reduce((acc, e) => acc + (e.progressPercentage || 0), 0) /
+            (data.length || 1)
+          )
+        );
+
+        setCompletedLessons(
+          data.reduce((acc, e) => acc + (e.completedLessons || 0), 0)
+        );
+        setTotalLessons(
+          data.reduce((acc, e) => acc + (e.totalLessons || 0), 0)
+        );
+
+        toast.success("Cursos carregados com sucesso!");
+      } catch {
+        toast.error("Erro ao carregar cursos matriculados");
+      }
+    };
+
+    fetchEnrollments();
+  }, [user?.id, loading, router]);
+
+  if(!user && !loading){
+    return null;
+  }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex">
+    <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#163E72] text-white p-6 space-y-6">
-        <h2 className="text-2xl font-bold mb-6">Portal do Aluno</h2>
-        <nav className="space-y-3">
-          {["Início", "Meus Cursos", "Atividades", "Calendário", "Boletim", "Financeiro", "Certificados", "Fórum"].map((item) => (
-            <button key={item} className="block w-full text-left hover:bg-[#255690] rounded-md px-3 py-2 transition">
-              {item}
-            </button>
-          ))}
-        </nav>
-      </aside>
+     
 
-      {/* Main content */}
-      <section className="flex-1 p-8">
-        <header className="flex justify-between items-center mb-8">
+      {/* Conteúdo principal */}
+      <main className="flex-1 p-8">
+        {/* Header com nome e avatar */}
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Olá, Ana Silva!</h1>
-            <p className="text-gray-500">27 de Outubro de 2023</p>
+            <h1 className="text-3xl font-bold text-[#163E72]">Olá, {user!.name}</h1>
+            <p className="text-gray-600">{today}</p>
           </div>
-          <div className="flex items-center gap-4">
-            <button className="text-gray-600 hover:text-gray-800">
-              <i className="fas fa-search"></i>
-            </button>
-            <button className="text-gray-600 hover:text-gray-800">
-              <i className="fas fa-bell"></i>
-            </button>
-            <div className="bg-[#255690] text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold">
-              AS
-            </div>
-          </div>
-        </header>
-
-        {/* Progress overview */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Meu Progresso Geral</h2>
-          <div className="flex items-center gap-6">
-            <CircularProgress percentage={72} size={80} />
-            <div>
-              <p className="text-gray-600">Cursos Concluídos: 5/7</p>
-              <p className="text-gray-600">Total de Aulas: 145/201</p>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-[#338B97] text-white flex items-center justify-center text-lg font-bold">
+              {user!.name.split(" ").map(n => n[0]).join("")}
             </div>
           </div>
         </div>
 
-        {/* Courses */}
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Meus Cursos Matriculados</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+        {/* Progresso geral */}
+        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+          <h2 className="font-semibold text-[#163E72] mb-4">Meu Progresso Geral</h2>
+          <div className="flex items-center gap-8">
+            {/* Gráfico circular */}
+            <div className="relative w-24 h-24">
+              <svg className="w-24 h-24">
+                <circle
+                  className="text-gray-300"
+                  strokeWidth="8"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="40"
+                  cx="48"
+                  cy="48"
+                />
+                <circle
+                  className="text-[#338B97]"
+                  strokeWidth="8"
+                  strokeDasharray={2 * Math.PI * 40}
+                  strokeDashoffset={2 * Math.PI * 40 * (1 - progress / 100)}
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="40"
+                  cx="48"
+                  cy="48"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-[#163E72]">
+                {progress}%
+              </span>
+            </div>
+
+            {/* Dados de progresso */}
+            <div>
+              <p className="text-gray-700">Cursos Concluídos: {completedCourses}/{totalCourses}</p>
+              <p className="text-gray-700">Total de Aulas: {completedLessons}/{totalLessons}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cursos matriculados */}
+        <h2 className="text-xl font-bold text-[#163E72] mb-4">Meus Cursos Matriculados</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {enrollments.map((course) => (
+            <div key={course.id} className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-bold text-[#163E72] mb-2">{course.courseTitle}</h3>
+              <p className="text-gray-600 mb-2">Status: {course.status}</p>
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                <div
+                  className="h-3 rounded-full bg-green-500"
+                  style={{ width: `${course.progressPercentage || 0}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">{course.progressPercentage || 0}% concluído</p>
+              <button
+                className="bg-[#338B97] text-white px-4 py-2 rounded-lg hover:bg-[#255690] transition"
+                onClick={() => toast.info(`Continuando curso: ${course.courseTitle}`)}
+              >
+                Continuar
+              </button>
+            </div>
           ))}
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
