@@ -35,3 +35,20 @@ export interface Enrollment {
     status?: string;
 }
 
+export interface CourseSummaryDto {
+  id: number;
+  title: string;
+  studentsCount: number;
+}
+
+export interface CoordinatorDashboardDto {
+  coursesCount: number;
+  teachersCount: number;
+  studentsCount: number;
+  coordinatorCount: number;
+  nextLessonsCount: number;
+  avgProgress: number;
+  courses: CourseSummaryDto[];
+}
+
+
