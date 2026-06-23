@@ -21,7 +21,7 @@ export default function RegisterForm() {
         e.preventDefault();
 
         try {
-            await axios.post("http://localhost:5119/api/Auth/register", {
+            await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/Auth/register`, {
                 userName: name,
                 userEmail: email,
                 password: password,

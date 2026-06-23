@@ -11,7 +11,6 @@ export function middleware(request: NextRequest) {
   try {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
     console.log("Decoded JWT:", decoded); 
-   // const profile = decoded.profile ? parseInt(decoded.profile) : null;
     const pathname = request.nextUrl.pathname;
 
     const rawProfile = decoded.profile || decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/profile"];
