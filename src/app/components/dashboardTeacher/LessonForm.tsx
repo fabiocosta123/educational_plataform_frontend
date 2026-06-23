@@ -1,21 +1,51 @@
 "use client";
 import { useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function LessonForm({ onSave }: { onSave: (data: any) => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [pdfMaterial, setPdfMaterial] = useState<string | null>(null);
+  const [pdfMaterial, setPdfMaterial] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ title, description, date, videoUrl, pdfMaterial });
-    setTitle("");
-    setDescription("");
-    setDate("");
-    setVideoUrl("");
-    setPdfMaterial(null);
+
+    try {
+      // Cria objeto para envio
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("date", date);
+      formData.append("videoUrl", videoUrl);
+      if (pdfMaterial) {
+        formData.append("pdfMaterial", pdfMaterial);
+      }
+
+      // Faz POST para o backend
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/Lessons`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      // Atualiza estado no frontend com a resposta do backend
+      onSave(response.data);
+      toast.success("Aula adicionada com sucesso!");
+
+      // Limpa formulário
+      setTitle("");
+      setDescription("");
+      setDate("");
+      setVideoUrl("");
+      setPdfMaterial(null);
+    } catch {
+      toast.error("Erro ao adicionar aula");
+    }
   };
 
   return (
@@ -55,7 +85,7 @@ export default function LessonForm({ onSave }: { onSave: (data: any) => void }) 
       <input
         type="file"
         accept="application/pdf"
-        onChange={(e) => setPdfMaterial(e.target.files?.[0]?.name || null)}
+        onChange={(e) => setPdfMaterial(e.target.files?.[0] || null)}
         className="mb-2"
       />
 
