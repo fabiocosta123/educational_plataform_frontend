@@ -9,13 +9,12 @@ import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../hooks/useAuth";
 
-import Cookies from "js-cookie";
-
 
 export interface JwtPayload {
     nameid: string;
     unique_name: string;
     role: string;
+    profile: string;
 }
 
 export default function LoginForm() {
@@ -37,7 +36,7 @@ export default function LoginForm() {
 
       const token = response.data.token;
       
-      Cookies.set("token", token, {expires: 7})
+      localStorage.setItem("token", token)
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       const decoded = jwtDecode<JwtPayload>(token);
@@ -45,14 +44,25 @@ export default function LoginForm() {
       setUser({
         id: parseInt(decoded.nameid),
         name: decoded.unique_name,
-        role: decoded.role
+        role: decoded.role,
+        profile: parseInt(decoded.profile)
       })
 
       toast.success("Login bem-sucedido!");
       setLogin("");
       setPassword("");
 
-      router.push("/dashboard");
+      const profile = parseInt(decoded.profile);
+
+      if (profile == 1){
+        router.push("/dashboard");
+      } 
+      else if (profile == 2){
+        router.push("/dashboard-teacher");
+      }
+      else if (profile == 3){
+        router.push("/dashboard-coordinator");
+      }
 
     } catch (err: any){
       toast.error(err.message || "Erro ao fazer login");
