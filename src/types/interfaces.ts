@@ -38,6 +38,7 @@ export interface CourseSummaryDto {
   id: number;
   title: string;
   studentsCount: number;
+  progress?: number;
 }
 
 export interface CoordinatorDashboardDto {

@@ -3,4 +3,3 @@ import DashboardCoordinatorPage from "../components/dashboardCoordinator/Dashboa
 export default function Page() {
   return <DashboardCoordinatorPage />;
 }
-
