@@ -25,7 +25,7 @@ export default function SidebarCoordinator() {
         <h2 className="text-2xl font-bold mb-8 hidden md:block">Portal do Coordenador</h2>
         <nav className="flex flex-col gap-4">
           <Link href="/dashboard-coordinator" className="hover:bg-[#255690] p-2 rounded">Início</Link>
-          <Link href="/dashboard-coordinator/courses" className="hover:bg-[#255690] p-2 rounded">Cursos</Link>
+          <Link href="/courses-coordinator" className="hover:bg-[#255690] p-2 rounded">Cursos</Link>
           <Link href="/dashboard-coordinator/teachers" className="hover:bg-[#255690] p-2 rounded">Professores</Link>
           <Link href="/dashboard-coordinator/students" className="hover:bg-[#255690] p-2 rounded">Alunos</Link>
           <Link href="/dashboard-coordinator/reports" className="hover:bg-[#255690] p-2 rounded">Relatórios</Link>

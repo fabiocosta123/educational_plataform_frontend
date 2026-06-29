@@ -5,6 +5,24 @@ export interface Course {
     studentsCount?: number;
 }
 
+export interface CourseReadDto {
+  id: number;
+  title: string;
+  description?: string;
+}
+
+export interface CourseCreateDto {
+  title: string;
+  description?: string;
+  creatorId: number;
+}
+
+export interface CourseUpdateDto {
+  title: string;
+  description?: string;
+}
+
+
 export interface User {
     id: number;
     name: string;
