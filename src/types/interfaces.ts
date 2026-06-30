@@ -2,20 +2,41 @@ export interface Course {
     id: number;
     title: string;
     description: string;
+    studentsCount?: number;
 }
+
+export interface CourseReadDto {
+  id: number;
+  title: string;
+  description?: string;
+  teacherId: number;
+}
+
+export interface CourseCreateDto {
+  title: string;
+  description?: string;
+  creatorId: number;
+}
+
+export interface CourseUpdateDto {
+  title: string;
+  description?: string;
+}
+
 
 export interface User {
     id: number;
     name: string;
     email?: string;
     role: string;
+    profile: number;
+    courses?: Course[];
 }
 
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  //login: (credentials: LoginData) => Promise<void>;
   setUser: (user: User | null) => void;
   logout: () => void;
 }
@@ -31,4 +52,22 @@ export interface Enrollment {
     totalLessons?: number;
     status?: string;
 }
+
+export interface CourseSummaryDto {
+  id: number;
+  title: string;
+  studentsCount: number;
+  progress?: number;
+}
+
+export interface CoordinatorDashboardDto {
+  coursesCount: number;
+  teachersCount: number;
+  studentsCount: number;
+  coordinatorCount: number;
+  nextLessonsCount: number;
+  avgProgress: number;
+  courses: CourseSummaryDto[];
+}
+
 
