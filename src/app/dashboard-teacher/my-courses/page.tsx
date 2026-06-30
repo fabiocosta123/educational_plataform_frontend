@@ -44,7 +44,7 @@ export default function CourseDashboard({ courseId }: { courseId: number }) {
 
   if (loading) return <p>Carregando...</p>;
 
-  // andamento geral do curso
+  
   const totalLessons = enrollments[0]?.totalLessons || 0;
   const avgCompleted = Math.round(
     enrollments.reduce((acc, e) => acc + e.completedLessons, 0) /
@@ -55,12 +55,12 @@ export default function CourseDashboard({ courseId }: { courseId: number }) {
       enrollments.length
   );
 
-  // últimos 5 com menor progresso
+  
   const bottomFive = [...enrollments]
     .sort((a, b) => a.progressPercentage - b.progressPercentage)
     .slice(0, 5);
 
-  // percentual de alunos acompanhando bem (>=70%)
+  
   const goodStudents = enrollments.filter((e) => e.progressPercentage >= 70)
     .length;
   const badStudents = enrollments.length - goodStudents;

@@ -9,6 +9,7 @@ export interface CourseReadDto {
   id: number;
   title: string;
   description?: string;
+  teacherId: number;
 }
 
 export interface CourseCreateDto {

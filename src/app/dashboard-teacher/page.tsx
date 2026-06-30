@@ -37,7 +37,7 @@ export default function DashboardTeacherPage() {
 
         {/* Cursos criados */}
         <h2 className="text-xl font-bold text-[#163E72] mb-4">
-          Meus Cursos Criados
+          Meus Cursos 
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {user.courses?.map((course) => (
