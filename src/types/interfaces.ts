@@ -10,6 +10,10 @@ export interface CourseReadDto {
   title: string;
   description?: string;
   teacherId: number;
+  teacherName: string; 
+  lessonsCount: number;
+  lessons: { id: number; title: string; date: string }[];
+  enrolledUsers: { id: number; userName: string }[];
 }
 
 export interface CourseCreateDto {
@@ -32,6 +36,15 @@ export interface User {
     profile: number;
     courses?: Course[];
 }
+
+
+export interface UserReadDto {
+  id: number;
+  userName: string;
+  email?: string;
+  profile?: string; // opcional, se quiser diferenciar Teacher/Student
+}
+
 
 export interface AuthContextType {
   user: User | null;

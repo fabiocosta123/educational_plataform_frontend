@@ -1,21 +1,50 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { CourseReadDto } from "../../../../types/interfaces";
+import api from "@/app/services/api";
+import { toast } from "react-toastify";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<CourseReadDto[]>([]);
 
   useEffect(() => {
     const fetchCourses = async () => {
-      const res = await axios.get<CourseReadDto[]>(
+      const res = await api.get<CourseReadDto[]>(
         `${process.env.NEXT_PUBLIC_API_URL}/api/courses`
       );
       setCourses(res.data);
     };
     fetchCourses();
   }, []);
+
+  const handleDelete = (id: number) => {
+    confirmAlert({
+      title: "Confirmar exclusão",
+      message: "Tem certeza que deseja excluir este curso?",
+      buttons: [
+        {
+          label: "Sim",
+          onClick: async () => {
+            try {
+              await api.delete(`/courses/${id}`);
+              setCourses(courses.filter(c => c.id !== id));
+              toast.success("Curso excluído com sucesso!");
+            } catch {
+              toast.error("Erro ao excluir curso");
+            }
+          }
+        },
+        {
+          label: "Cancelar"
+        }
+      ]
+    });
+  };
+
+
 
   return (
     <div className="p-6">
@@ -35,6 +64,12 @@ export default function CoursesPage() {
               <td className="p-3">{course.description}</td>
               <td className="p-3">
                 <button className="text-blue-600 hover:underline">Detalhes</button>
+                <button
+                  onClick={() => handleDelete(course.id)}
+                  className="text-red-600 hover:underline"
+                >
+                  🗑️ Excluir
+                </button>
               </td>
             </tr>
           ))}

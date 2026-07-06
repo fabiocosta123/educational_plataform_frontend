@@ -19,7 +19,7 @@ export default function Header() {
             height={100}
           />
         </Link>
-        {/* <span className="text-[#163E72] font-bold text-xl">Anexa</span> */}
+        
       </div>
 
       {/* Botão hamburguer (mobile) */}

@@ -1,20 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { confirmAlert } from "react-confirm-alert";
 import { CourseReadDto } from "../../types/interfaces";
 import { FiEye, FiEdit, FiTrash } from "react-icons/fi";
 import CourseForm from "./CourseForm";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import api from "../services/api";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 export default function CoursesCoordinatorPage() {
   const [courses, setCourses] = useState<CourseReadDto[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseReadDto | null>(null);
 
+  const router = useRouter();
+
   useEffect(() => {
     const fetchCourses = async () => {
-      const res = await axios.get<CourseReadDto[]>(
+      const res = await api.get<CourseReadDto[]>(
         `${process.env.NEXT_PUBLIC_API_URL}/api/courses`
       );
       setCourses(res.data);
@@ -28,24 +33,39 @@ export default function CoursesCoordinatorPage() {
   };
 
 
-  const handleDeleteCourse = async (id: number) => {
-    try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`);
-      setCourses(prev => prev.filter(c => c.id !== id));
-      toast.success("Curso excluído com sucesso!");
-    } catch {
-      toast.error("Erro ao excluir curso");
-    }
+  const handleDeleteCourse = (id: number) => {
+    confirmAlert({
+      title: "Confirmar exclusão",
+      message: "Tem certeza que deseja excluir este curso?",
+      buttons: [
+        {
+          label: "Sim",
+          onClick: async () => {
+            try {
+              await api.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`);
+              setCourses(prev => prev.filter(c => c.id !== id));
+              toast.success("Curso excluído com sucesso!");
+            } catch {
+              toast.error("Erro ao excluir curso");
+            }
+          }
+        },
+        {
+          label: "Cancelar"
+        }
+      ]
+    });
   };
 
 
+
   const handleEditCourse = (course: CourseReadDto) => {
-    setEditingCourse(course); // abre form com dados preenchidos
+    setEditingCourse(course);
   };
 
   const handleUpdateCourse = async (updatedCourse: CourseReadDto) => {
     try {
-      const res = await axios.put<CourseReadDto>(
+      const res = await api.put<CourseReadDto>(
         `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${updatedCourse.id}`,
         updatedCourse
       );
@@ -60,8 +80,7 @@ export default function CoursesCoordinatorPage() {
   };
 
   const handleDetailsCourse = (course: CourseReadDto) => {
-
-    window.location.href = `/courses-coordinator/${course.id}`;
+    window.location.href = `/courses-coordinator/${course.id}/details`;
   };
 
   return (
@@ -99,8 +118,9 @@ export default function CoursesCoordinatorPage() {
                 >
                   <FiEye />
                 </button>
+
                 <button
-                  onClick={() => handleEditCourse(course)}
+                  onClick={() => router.push(`/courses-coordinator/${course.id}/edit`)}
                   className="text-green-600 hover:text-green-800"
                   title="Editar"
                 >

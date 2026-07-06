@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/app/services/api";
 import CourseCard from "../../components/dashboard/CourseCard";
 
 interface CourseDto {
@@ -18,7 +18,7 @@ export default function CoursePage() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/Courses`
         );
         setCourses(response.data);

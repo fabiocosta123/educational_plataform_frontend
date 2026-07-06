@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { CourseReadDto } from "@/types/interfaces";
+import api from "../services/api";
 
 interface Teacher {
   id: number;
@@ -33,7 +33,7 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const res = await axios.get<Teacher[]>(
+        const res = await api.get<Teacher[]>(
           `${process.env.NEXT_PUBLIC_API_URL}/api/teacher`
         );
         setTeachers(res.data);
@@ -50,17 +50,19 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
 
     try {
       if (initialData) {
-        // Atualização
-        const response = await axios.put<CourseReadDto>(
+       
+        const response = await api.put(
           `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${initialData.id}`,
           { id: initialData.id, title, description, teacherId }
         );
         onSave(response.data);
         toast.success("Curso atualizado com sucesso!");
+       
+       
       } else {
         // Criação
-        const payload = { title, description, creatorId: 1, teacherId };
-        const response = await axios.post<CourseReadDto>(
+        const payload = { title, description, teacherId };
+        const response = await api.post<CourseReadDto>(
           `${process.env.NEXT_PUBLIC_API_URL}/api/courses`,
           payload
         );
@@ -68,7 +70,7 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
         toast.success("Curso criado com sucesso!");
       }
 
-      // Limpa formulário
+      
       setTitle("");
       setDescription("");
       setTeacherId(null);
