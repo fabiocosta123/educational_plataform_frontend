@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import axios from "axios";
+import api from "../../services/api"
 import { toast } from "react-toastify";
 
 export default function LessonForm({ onSave }: { onSave: (data: any) => void }) {
@@ -25,7 +25,7 @@ export default function LessonForm({ onSave }: { onSave: (data: any) => void }) 
       }
 
       // Faz POST para o backend
-      const response = await axios.post(
+      const response = await api.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/Lessons`,
         formData,
         {

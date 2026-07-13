@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../services/api"
 import { toast } from "react-toastify";
 
 interface Lesson {
@@ -25,7 +25,7 @@ export default function LessonList({ lessons: propLessons }: LessonListProps) {
     if (!propLessons) {
       const fetchLessons = async () => {
         try {
-          const response = await axios.get<Lesson[]>(
+          const response = await api.get<Lesson[]>(
             `${process.env.NEXT_PUBLIC_API_URL}/api/Lessons`
           );
           setLessons(response.data);

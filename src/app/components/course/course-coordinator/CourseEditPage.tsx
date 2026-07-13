@@ -44,7 +44,7 @@ export default function CourseEditPage() {
     const fetchTeachers = async () => {
       try {
         const res = await api.get<Teacher[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/teacher`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/teachers`
         );
         setTeachers(res.data);
       } catch {

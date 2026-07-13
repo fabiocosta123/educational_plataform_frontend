@@ -28,7 +28,7 @@ export default function DashboardTeacher() {
 
     if (user) {
       const token = Cookies.get("token");
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teacher/${user.id}/dashboard`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teachers/${user.id}/dashboard`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -50,54 +50,58 @@ export default function DashboardTeacher() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
+    <div className="flex flex-col min-h-screen bg-gray-100 md:flex-row">
+      {/* Sidebar - em mobile vira topo */}
       <SidebarTeacher />
 
       {/* Conteúdo principal */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 md:p-8">
         {/* Header com nome e avatar */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col items-start gap-2 mb-6 md:flex-row md:justify-between md:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-[#163E72]">Olá, Prof. {user!.name}</h1>
-            <p className="text-gray-600">{today}</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-[#163E72]">
+              Olá, Prof. {user!.name}
+            </h1>
+            <p className="text-gray-600 text-sm md:text-base">{today}</p>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full bg-[#338B97] text-white flex items-center justify-center text-lg font-bold">
+          <div className="flex items-center mt-2 md:mt-0">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#338B97] text-white flex items-center justify-center text-base md:text-lg font-bold">
               {user!.name.split(" ").map(n => n[0]).join("")}
             </div>
           </div>
         </div>
 
         {/* Cards visuais com dados reais */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-            <span className="text-2xl font-bold text-[#163E72]">{activeCourses}</span>
-            <span className="text-gray-600">Cursos ativos</span>
+        <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-4">
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center">
+            <span className="text-xl md:text-2xl font-bold text-[#163E72]">{activeCourses}</span>
+            <span className="text-gray-600 text-xs md:text-sm">Cursos ativos</span>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-            <span className="text-2xl font-bold text-[#163E72]">{studentsCount}</span>
-            <span className="text-gray-600">Alunos matriculados</span>
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center">
+            <span className="text-xl md:text-2xl font-bold text-[#163E72]">{studentsCount}</span>
+            <span className="text-gray-600 text-xs md:text-sm">Alunos matriculados</span>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-            <span className="text-2xl font-bold text-[#163E72]">{lessonsCount}</span>
-            <span className="text-gray-600">Aulas publicadas</span>
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center">
+            <span className="text-xl md:text-2xl font-bold text-[#163E72]">{lessonsCount}</span>
+            <span className="text-gray-600 text-xs md:text-sm">Aulas publicadas</span>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-            <span className="text-xl font-bold text-[#163E72]">
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center">
+            <span className="text-lg md:text-xl font-bold text-[#163E72]">
               {nextLessonDate ?? "—"}
             </span>
-            <span className="text-gray-600">Próxima aula</span>
+            <span className="text-gray-600 text-xs md:text-sm">Próxima aula</span>
           </div>
         </div>
 
         {/* Cursos em andamento */}
-        <h2 className="text-xl font-bold text-[#163E72] mb-4">Cursos em andamento</h2>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="text-gray-600">Nenhum curso atribuído ainda.</p>
+        <h2 className="text-lg md:text-xl font-bold text-[#163E72] mb-3 md:mb-4">
+          Cursos em andamento
+        </h2>
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
+          <p className="text-gray-600 text-sm md:text-base">Nenhum curso atribuído ainda.</p>
         </div>
       </main>
     </div>

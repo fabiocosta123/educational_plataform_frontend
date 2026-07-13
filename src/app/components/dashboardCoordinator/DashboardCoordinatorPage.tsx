@@ -2,7 +2,7 @@
 
 import { useAuth } from "../../hooks/useAuth";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../services/api"
 import { CoordinatorDashboardDto } from "../../../types/interfaces";
 import Card from "../common/Card";
 import { toast } from "react-toastify";
@@ -27,7 +27,7 @@ export default function DashboardCoordinatorPage() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const res = await axios.get<CoordinatorDashboardDto>(
+      const res = await api.get<CoordinatorDashboardDto>(
         `${process.env.NEXT_PUBLIC_API_URL}/api/coordinator/dashboard`
       );
 

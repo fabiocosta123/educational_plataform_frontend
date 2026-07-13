@@ -42,7 +42,7 @@ export interface UserReadDto {
   id: number;
   userName: string;
   email?: string;
-  profile?: string; // opcional, se quiser diferenciar Teacher/Student
+  profile?: string; 
 }
 
 
@@ -81,6 +81,10 @@ export interface CoordinatorDashboardDto {
   nextLessonsCount: number;
   avgProgress: number;
   courses: CourseSummaryDto[];
+}
+
+export interface TeacherReadDto extends UserReadDto {
+  courses: CourseReadDto[];
 }
 
 
