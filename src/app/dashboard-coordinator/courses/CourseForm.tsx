@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { CourseReadDto } from "@/types/interfaces";
-import api from "../services/api";
+import api from "../../services/api";
 
 interface Teacher {
   id: number;

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import LogoutButton from "../logoutButton/LogoutButton";
+import LogoutButton from "../../logoutButton/LogoutButton";
 import { useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
 

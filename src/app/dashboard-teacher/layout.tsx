@@ -1,4 +1,4 @@
-import SidebarTeacher from "../components/dashboardTeacher/SidebarTeacher";
+import SidebarTeacher from "../components/dashboardCoordinator/teachers/SidebarTeacher";
 
 export default function DashboardTeacherLayout({ children } : { children: React.ReactNode}) {
     return (

@@ -1,45 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import api from "@/app/services/api";
 import { toast } from "react-toastify";
 import { TeacherReadDto } from "../../../types/interfaces";
+import { useRouter } from "next/navigation";
+
+const fetcher = (url: string) => api.get(url).then(res => res.data);
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<TeacherReadDto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const res = await api.get<TeacherReadDto[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/teachers`
-        );
-        setTeachers(res.data);
-      } catch {
-        toast.error("Erro ao carregar professores");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTeachers();
-  }, []);
+  
+  const { data: teachers, error, isLoading, mutate } = useSWR<TeacherReadDto[]>(
+    "/teachers",
+    fetcher
+  );
 
-  if (loading) return <p className="text-center mt-10">Carregando...</p>;
+  if (isLoading) return <p className="text-center mt-10">Carregando...</p>;
+  if (error) {
+    toast.error("Erro ao carregar professores");
+    return null;
+  }
 
-
-  const totalProfessores = teachers.length;
-  const totalCursos = teachers.reduce((acc, t) => acc + t.courses.length, 0);
-  const totalAulas = teachers.reduce(
+  const totalProfessores = teachers?.length ?? 0;
+  const totalCursos = teachers?.reduce((acc, t) => acc + t.courses.length, 0) ?? 0;
+  const totalAulas = teachers?.reduce(
     (acc, t) => acc + t.courses.reduce((cAcc, c) => cAcc + c.lessonsCount, 0),
     0
-  );
-  const totalAlunos = teachers.reduce(
+  ) ?? 0;
+  const totalAlunos = teachers?.reduce(
     (acc, t) =>
       acc +
       t.courses.reduce((cAcc, c) => cAcc + (c.enrolledUsers?.length ?? 0), 0),
     0
-  );
+  ) ?? 0;
 
   return (
     <div className="p-4 sm:p-6">
@@ -51,13 +46,21 @@ export default function TeachersPage() {
         <DashboardCard title="Alunos" value={totalAlunos} />
       </div>
 
-      {/* Lista detalhada */}
-      <h1 className="text-xl sm:text-2xl font-bold text-[#163E72] mb-4">
-        Professores
-      </h1>
+      {/* Header com botão */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#163E72]">
+          Professores
+        </h1>
+        <button
+          onClick={() => router.push("/dashboard-coordinator/teachers/create")}
+          className="bg-[#163E72] text-white px-4 py-2 rounded hover:bg-[#255690] transition"
+        >
+          Criar Professor
+        </button>
+      </div>
 
       <div className="space-y-4">
-        {teachers.map((teacher) => {
+        {teachers?.map((teacher) => {
           const aulas = teacher.courses.reduce(
             (acc, c) => acc + c.lessonsCount,
             0
@@ -98,7 +101,6 @@ export default function TeachersPage() {
     </div>
   );
 }
-
 
 function DashboardCard({ title, value }: { title: string; value: number }) {
   return (

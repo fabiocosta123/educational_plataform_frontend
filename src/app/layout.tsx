@@ -25,7 +25,7 @@ export default function RootLayout({
       </head>
       <body className="bg-gray-50 text-gray-900">
         <AuthProvider>
-          <ToastContainer position="top-right" autoClose={false} />
+          <ToastContainer position="top-right" autoClose={2000} />
           {children}
         </AuthProvider>       
       </body>

@@ -38,7 +38,7 @@ export default function CourseDetailsPage() {
         <h2 className="text-lg font-bold text-[#163E72] mb-2">Resumo</h2>
         
         <p><strong>Professor:</strong> {course.teacherName}</p>
-        {/* <p><strong>Total de aulas:</strong> {course.lessonsCount}</p> */}
+       
         <p><strong>Alunos inscritos:</strong> {course.enrolledUsers?.length ?? 0}</p>
       </div>
 

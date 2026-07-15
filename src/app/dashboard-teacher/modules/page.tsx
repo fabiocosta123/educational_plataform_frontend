@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import ModuleCard from "@/app/components/dashboardTeacher/ModuleCard";
+import ModuleCard from "@/app/components/dashboardCoordinator/teachers/ModuleCard";
 
 interface Lesson {
   id: number;

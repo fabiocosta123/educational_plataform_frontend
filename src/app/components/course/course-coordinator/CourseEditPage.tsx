@@ -26,7 +26,7 @@ export default function CourseEditPage() {
     const fetchCourse = async () => {
       try {
         const res = await api.get<CourseReadDto>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`
+          `/courses/${id}`
         );
         setCourse(res.data);
         setTitle(res.data.title ?? "");
@@ -44,7 +44,7 @@ export default function CourseEditPage() {
     const fetchTeachers = async () => {
       try {
         const res = await api.get<Teacher[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/teachers`
+          `/teachers`
         );
         setTeachers(res.data);
       } catch {
@@ -57,13 +57,13 @@ export default function CourseEditPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.put(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`, {
+      await api.put(`/courses/${id}`, {
         title,
         description,
         teacherId: Number(teacherId),
       });
       toast.success("Curso atualizado com sucesso!");
-      router.push(`/courses-coordinator/${id}/details`);
+      router.push(`/dashboard-coordinator/courses/${id}/details`);
     } catch {
       toast.error("Erro ao atualizar curso");
     }

@@ -1,4 +1,3 @@
-import SidebarCoordinator from "../components/dashboardCoordinator/SidebarCoordinator";
 
 export default function CoursesCoordinatorLayout({
   children,
@@ -7,8 +6,7 @@ export default function CoursesCoordinatorLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar fixa */}
-      <SidebarCoordinator />
+     
 
       {/* Conteúdo rolável */}
       <main className="flex-1 p-6 overflow-y-auto">

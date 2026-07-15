@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import api from "../../services/api"
+import api from "../../../services/api"
 import { toast } from "react-toastify";
 
 export default function LessonForm({ onSave }: { onSave: (data: any) => void }) {
