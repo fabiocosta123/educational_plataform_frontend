@@ -21,7 +21,7 @@ export default function StudentsPage() {
     const fetchStudents = async () => {
       try {
         const res = await api.get<StudentDto[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/users/students`
+          `/users/students`
         );
         setStudents(res.data);
       } catch {

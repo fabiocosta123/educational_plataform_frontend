@@ -34,7 +34,7 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
     const fetchTeachers = async () => {
       try {
         const res = await api.get<Teacher[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/teachers`
+          `${process.env.NEXT_PUBLIC_API_URL}/teachers`
         );
         setTeachers(res.data);
       } catch {

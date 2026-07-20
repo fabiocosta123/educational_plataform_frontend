@@ -23,9 +23,9 @@ export default function StudentForm({ onSave }: StudentFormProps) {
   useEffect(() => {
     async function loadData() {
       try {
-        const coursesRes = await api.get("/api/courses");
+        const coursesRes = await api.get("/courses");
         setCourses(coursesRes.data);
-        const teachersRes = await api.get("/api/teachers/list");
+        const teachersRes = await api.get("/teachers/list");
         setTeachers(teachersRes.data);
       } catch {
         toast.error("Erro ao carregar cursos/professores");
@@ -49,7 +49,7 @@ export default function StudentForm({ onSave }: StudentFormProps) {
       };
 
       const response = await api.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/users/students`,
+        `/users/students`,
         payload
       );
 
