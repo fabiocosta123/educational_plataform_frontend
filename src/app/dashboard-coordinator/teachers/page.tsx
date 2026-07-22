@@ -43,7 +43,7 @@ export default function TeachersPage() {
         <DashboardCard title="Professores" value={totalProfessores} />
         <DashboardCard title="Cursos" value={totalCursos} />
         <DashboardCard title="Aulas" value={totalAulas} />
-        <DashboardCard title="Alunos" value={totalAlunos} />
+        <DashboardCard title="Alunos Matriculados" value={totalAlunos} />
       </div>
 
       {/* Header com botão */}

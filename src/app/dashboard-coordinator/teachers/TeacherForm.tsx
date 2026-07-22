@@ -15,6 +15,8 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
   const [password, setPassword] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [cpf, setCpf] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +28,7 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
         Password: password,
         Profile: 2,
         BirthDate: new Date(birthDate).toISOString(),
+        phoneNumber,
         CPF: cpf || "",
         Role: "Teacher"
       };
@@ -69,6 +72,15 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   }
 
+  function formatPhone(value: string) {
+    return value
+      .replace(/\D/g, "")        // remove tudo que não for número
+      .slice(0, 11)              // limita a 11 dígitos
+      .replace(/(\d{2})(\d)/, "($1) $2") // adiciona parênteses no DDD
+      .replace(/(\d{5})(\d{4})$/, "$1-$2"); // adiciona hífen
+  }
+
+
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mb-6">
@@ -76,6 +88,15 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
 
       <input type="text" placeholder="Nome do professor" value={userName}
         onChange={(e) => setUserName(e.target.value)} className="w-full border rounded p-2 mb-4" required />
+
+        <input
+  type="text"
+  placeholder="Telefone (00) 00000-0000"
+  value={phoneNumber}
+  onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
+  className="w-full border rounded p-2 mb-4"
+/>
+
 
       <input type="email" placeholder="Email" value={userEmail}
         onChange={(e) => setUserEmail(e.target.value)} className="w-full border rounded p-2 mb-4" required />

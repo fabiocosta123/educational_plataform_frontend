@@ -27,7 +27,7 @@ export default function TeachersPage() {
 
   if (loading) return <p className="text-center mt-10">Carregando...</p>;
 
-  // 📊 Cálculos para o dashboard
+  // Cálculos para o dashboard
   const totalProfessores = teachers.length;
   const totalCursos = teachers.reduce((acc, t) => acc + t.courses.length, 0);
   const totalAulas = teachers.reduce(

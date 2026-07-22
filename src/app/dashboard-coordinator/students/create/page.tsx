@@ -14,7 +14,7 @@ export default function CreateStudentPage() {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">Criar Estudante</h1>
+      
       <StudentForm onSave={handleSave} />
     </div>
   );

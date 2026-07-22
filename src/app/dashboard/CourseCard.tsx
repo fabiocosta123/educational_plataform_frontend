@@ -1,6 +1,6 @@
 "use client";
 
-import ProgressBar from "./";
+import ProgressBar from "../components/dashboard/ProgressBar";
 
 export default function CourseCard({ course }: any) {
   return (

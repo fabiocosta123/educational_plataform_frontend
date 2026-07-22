@@ -44,7 +44,7 @@ export default function CourseEditPage() {
     const fetchTeachers = async () => {
       try {
         const res = await api.get<Teacher[]>(
-          `/teachers`
+          `teachers`
         );
         setTeachers(res.data);
       } catch {

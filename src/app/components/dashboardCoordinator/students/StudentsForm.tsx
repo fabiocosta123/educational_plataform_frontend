@@ -3,22 +3,27 @@
 import { useState, useEffect } from "react";
 import api from "../../../services/api";
 import { toast } from "react-toastify";
+import { StudentDto } from "@/types/interfaces";
 
 interface StudentFormProps {
+  student?: StudentDto;   
   onSave: (data: any) => void;
 }
 
-export default function StudentForm({ onSave }: StudentFormProps) {
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [courseId, setCourseId] = useState(0);
-  const [teacherId, setTeacherId] = useState(0);
-  const [status, setStatus] = useState("Ativo");
+export default function StudentForm({ student, onSave }: StudentFormProps) {
+  const [userName, setUserName] = useState(student?.userName ?? "");
+  const [userEmail, setUserEmail] = useState(student?.userEmail ?? "");
+  const [birthDate, setBirthDate] = useState(student?.birthDate?.split("T")[0] ?? "");
+  const [cpf, setCpf] = useState(student?.cpf ?? "");
+  const [phoneNumber, setPhoneNumber] = useState(student?.phoneNumber ?? "");
 
-  const [courses, setCourses] = useState<any[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
+ 
+  const [courseId, setCourseId] = useState(student?.courseEnrolled?.[0]?.courseId ?? 0);
+  const [teacherId, setTeacherId] = useState(0); 
+  const [status, setStatus] = useState(student?.courseEnrolled?.[0]?.status ?? "Ativo");
+
+  const [courses, setCourses] = useState<{ id: number; title: string }[]>([]);
+  const [teachers, setTeachers] = useState<{ id: number; userName: string }[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -42,34 +47,59 @@ export default function StudentForm({ onSave }: StudentFormProps) {
         userName,
         userEmail,
         cpf,
+        phoneNumber,
         birthDate: new Date(birthDate).toISOString(),
         courseId,
         teacherId,
         status
       };
 
-      const response = await api.post(
-        `/users/students`,
-        payload
-      );
+      let response;
+      if (student) {
+        // 🔹 edição
+        response = await api.put(`/users/${student.id}`, payload);
+        toast.success("Aluno atualizado com sucesso!");
+      } else {
+        // 🔹 criação
+        response = await api.post(`/users/students`, payload);
+        toast.success("Aluno criado com sucesso!");
+      }
 
       onSave(response.data);
-      toast.success("Aluno criado com sucesso!");
     } catch (error: any) {
       const message =
         error.response?.data?.title ||
         error.response?.data?.errors ||
-        "Erro ao criar aluno";
+        "Erro ao salvar aluno";
       toast.error(message);
     }
   };
 
+  function formatCpf(value: string) {
+    return value.replace(/\D/g, "").slice(0, 11)
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+
+  function formatPhone(value: string) {
+    return value.replace(/\D/g, "").slice(0, 11)
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d{4})$/, "$1-$2");
+  }
+
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mb-6">
-      <h3 className="text-lg font-semibold text-[#163E72] mb-4">Novo Estudante</h3>
+      <h3 className="text-lg font-semibold text-[#163E72] mb-4">
+        {student ? "Editar Estudante" : "Novo Estudante"}
+      </h3>
 
       <input type="text" placeholder="Nome do aluno" value={userName}
         onChange={(e) => setUserName(e.target.value)} className="w-full border rounded p-2 mb-4" required />
+
+      <input type="text" placeholder="Telefone (00) 00000-0000" value={phoneNumber}
+        onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
+        className="w-full border rounded p-2 mb-4" />
 
       <input type="email" placeholder="Email" value={userEmail}
         onChange={(e) => setUserEmail(e.target.value)} className="w-full border rounded p-2 mb-4" required />
@@ -77,8 +107,9 @@ export default function StudentForm({ onSave }: StudentFormProps) {
       <input type="date" placeholder="Data de nascimento" value={birthDate}
         onChange={(e) => setBirthDate(e.target.value)} className="w-full border rounded p-2 mb-4" required />
 
-      <input type="text" placeholder="CPF" value={cpf}
-        onChange={(e) => setCpf(e.target.value)} className="w-full border rounded p-2 mb-4" />
+      <input type="text" placeholder="CPF (000.000.000-00)" value={cpf}
+        onChange={(e) => setCpf(formatCpf(e.target.value))}
+        className="w-full border rounded p-2 mb-4" />
 
       <select value={courseId} onChange={(e) => setCourseId(Number(e.target.value))}
         className="w-full border rounded p-2 mb-4">
@@ -100,7 +131,7 @@ export default function StudentForm({ onSave }: StudentFormProps) {
       </select>
 
       <button type="submit" className="bg-[#163E72] text-white px-4 py-2 rounded hover:bg-[#255690] transition">
-        Salvar Estudante
+        {student ? "Salvar Alterações" : "Salvar Estudante"}
       </button>
     </form>
   );

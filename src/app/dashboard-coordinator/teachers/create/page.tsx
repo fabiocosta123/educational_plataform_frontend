@@ -15,7 +15,7 @@ export default function CreateTeacherPage() {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">Criar Professor</h1>
+      
       <TeacherForm onSave={handleSave} />
     </div>
   );

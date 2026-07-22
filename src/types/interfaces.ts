@@ -87,4 +87,28 @@ export interface TeacherReadDto extends UserReadDto {
   courses: CourseReadDto[];
 }
 
+export interface CourseEnrollmentDto {
+  id: number;
+  courseTitle: string;
+  status: string;
+  teacherName?: string;
+  userName?: string;
+  progressPercentage?: number;
+  completedLessons?: number;
+  totalLessons?: number;
+  courseId: number;
+  teacherId: number;
+}
+
+export interface StudentDto {
+  id: number;
+  userName: string;
+  userEmail: string;
+  cpf?: string;
+  birthDate?: string;
+  phoneNumber?: string;
+  courseEnrolled: CourseEnrollmentDto[];
+
+}
+
 
