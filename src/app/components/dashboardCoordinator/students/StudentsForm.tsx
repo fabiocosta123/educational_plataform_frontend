@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { StudentDto } from "@/types/interfaces";
 
 interface StudentFormProps {
-  student?: StudentDto;   
+  student?: StudentDto;
   onSave: (data: any) => void;
 }
 
@@ -17,9 +17,9 @@ export default function StudentForm({ student, onSave }: StudentFormProps) {
   const [cpf, setCpf] = useState(student?.cpf ?? "");
   const [phoneNumber, setPhoneNumber] = useState(student?.phoneNumber ?? "");
 
- 
+
   const [courseId, setCourseId] = useState(student?.courseEnrolled?.[0]?.courseId ?? 0);
-  const [teacherId, setTeacherId] = useState(0); 
+  const [teacherId, setTeacherId] = useState(0);
   const [status, setStatus] = useState(student?.courseEnrolled?.[0]?.status ?? "Ativo");
 
   const [courses, setCourses] = useState<{ id: number; title: string }[]>([]);
@@ -49,18 +49,21 @@ export default function StudentForm({ student, onSave }: StudentFormProps) {
         cpf,
         phoneNumber,
         birthDate: new Date(birthDate).toISOString(),
-        courseId,
-        teacherId,
-        status
+        courseEnrollments: [
+          {
+            courseId,
+            status
+          }
+        ]
       };
 
       let response;
       if (student) {
-        // 🔹 edição
+        // edição
         response = await api.put(`/users/${student.id}`, payload);
         toast.success("Aluno atualizado com sucesso!");
       } else {
-        // 🔹 criação
+        // criação
         response = await api.post(`/users/students`, payload);
         toast.success("Aluno criado com sucesso!");
       }
@@ -74,6 +77,7 @@ export default function StudentForm({ student, onSave }: StudentFormProps) {
       toast.error(message);
     }
   };
+
 
   function formatCpf(value: string) {
     return value.replace(/\D/g, "").slice(0, 11)
