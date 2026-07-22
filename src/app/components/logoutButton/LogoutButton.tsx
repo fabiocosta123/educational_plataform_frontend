@@ -9,7 +9,7 @@ export default function LogoutButton() {
 
   const handleLogout = () => {
     logout();
-    router.push("/home");
+    router.push("/");
   };
 
   return (

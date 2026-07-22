@@ -1,13 +1,12 @@
 "use client";
 
-import Link from "next/link";
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Enrollment } from "../../types/interfaces";
 import { toast } from "react-toastify";
 import { useAuth } from "../hooks/useAuth";
 import { useRouter } from "next/navigation";
-import LogoutButton  from "../components/logoutButton/LogoutButton"
 
 export default function StudentDashboard() {
   const { user } = useAuth();

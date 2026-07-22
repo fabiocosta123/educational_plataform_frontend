@@ -1,6 +1,6 @@
-import axios from "axios";
 import { toast } from "react-toastify";
 import { Course, User } from "../../../types/interfaces"
+import api from "@/app/services/api";
 
 interface CourseCardProps {
   course: Course,
@@ -10,7 +10,7 @@ interface CourseCardProps {
 export default function CourseCard({ course, user }: CourseCardProps) {
   const handleEnroll = async () => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment`, {
+      await api.post(`${process.env.NEXT_PUBLIC_API_URL}/api/CoursesEnrollment`, {
         userId: user.id,   
         courseId: course.id,
       });

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Toaster } from "sonner";
+import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "./hooks/useAuth";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export default function RootLayout({
       </head>
       <body className="bg-gray-50 text-gray-900">
         <AuthProvider>
-          <Toaster richColors position="top-right" />
+          <ToastContainer position="top-right" autoClose={2000} />
           {children}
         </AuthProvider>       
       </body>
