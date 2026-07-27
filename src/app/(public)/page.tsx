@@ -1,6 +1,7 @@
 import HeroSection from "../components/home/Hero-Section";
 
 export default function Home() {
+ 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#163E72] via-[#255690] to-[#66BCA1] flex flex-col items-center justify-center p-8 text-center">
       <HeroSection />

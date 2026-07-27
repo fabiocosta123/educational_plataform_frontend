@@ -111,4 +111,15 @@ export interface StudentDto {
 
 }
 
+export interface FinanceSummary {
+  totalReceived: number;
+  totalPending: number;
+  totalPayments: number;
+  paid: number;
+  pending: number;
+  defaultRate: number;
+  activeStudents: number;
+  monthlyRevenue: number;
+}
+
 
