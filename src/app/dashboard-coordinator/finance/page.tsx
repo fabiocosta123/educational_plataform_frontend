@@ -1,9 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardFinance from "../../components/dashboardCoordinator/finance/DashboardFinance";
 import api from "../../services/api";
 import {
-    CircularProgress,
     Box,
     Typography,
     Card,
@@ -16,26 +15,22 @@ import {
     DialogActions,
     Autocomplete
 } from "@mui/material";
+
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import Grid from "@mui/material/Grid";
 import { NumericFormat } from "react-number-format";
-import { FinanceSummary } from "../../../types/interfaces";
+import { CourseEnrollmentDto, FinanceSummary } from "../../../types/interfaces";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Payment } from "../../../types/interfaces"
+import { Snackbar, Alert } from "@mui/material";
 
-type Payment = {
-    id: number;
-    amount: number;
-    status: string;
-    paidAt?: string;
-    course?: { title: string };
-    user?: { userName: string };
-    qrCodeBase64?: string;
-};
 
 export default function FinancePage() {
-
     const [searchName, setSearchName] = useState("");
     const [selectedStudent, setSelectedStudent] = useState<any>(null);
     const [openForm, setOpenForm] = useState(false);
+
     const [formData, setFormData] = useState({
         userName: "",
         courseTitle: "",
@@ -52,20 +47,19 @@ export default function FinancePage() {
 
     const [students, setStudents] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
-
     const [payments, setPayments] = useState<Payment[]>([]);
     const [summary, setSummary] = useState<FinanceSummary | null>(null);
-
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     useEffect(() => {
         api.get("/finance/pix/history")
             .then((res) => {
-                setSummary(res.data);
-                setPayments([]);
+                setPayments(res.data.payments ?? []);
+                console.log("Pagamentos recebidos:", res.data.payments);
+                setSummary(res.data.summary ?? res.data);
             })
             .catch((err) => console.error("Error loading financial history:", err));
     }, []);
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -74,50 +68,38 @@ export default function FinancePage() {
                 setStudents(studentsResponse.data);
 
                 const coursesResponse = await api.get("/courses");
-
                 setCourses(coursesResponse.data);
-
             } catch (error) {
                 console.error("Erro ao carregar alunos ou cursos:", error);
             }
         };
-
         fetchData();
     }, []);
 
-
-    const fetchStudentFinance = async () => {
-        if (!searchName) return;
+    const fetchStudentFinance = async (userName: string) => {
         try {
-            const res = await api.get(`/finance/pix/student?userName=${searchName}`);
+            const res = await api.get(`/finance/pix/student?userName=${encodeURIComponent(userName)}`);
 
-            // se esse endpoint retorna apenas resumo
-            setSummary(res.data);
-            setPayments([]); // ou res.data.payments se existir
+            // Agora o backend retorna { summary, payments }
+            setPayments(res.data.payments ?? []);
+            setSummary(res.data.summary ?? null);
 
-            const studentRes = await api.get(`/users/byName?userName=${searchName}`);
+            const studentRes = await api.get(`/users/byName?userName=${encodeURIComponent(userName)}`);
             setSelectedStudent(studentRes.data);
-        } catch (err) {
-            console.error("Error loading student finance:", err);
-            toast.error("Erro ao buscar dados do aluno");
+        } catch (err: any) {
+            if (err.response?.status === 404) {
+                const studentRes = await api.get(`/users/byName?userName=${encodeURIComponent(userName)}`);
+                setSelectedStudent(studentRes.data);
+                setPayments([]);
+                setSummary(null);
+            } else {
+                console.error("Error loading student finance:", err);
+                toast.error("Erro ao buscar dados do aluno");
+            }
         }
-    }
-
-    const handleDownloadPdf = async (paymentId: number) => {
-        const response = await api.get(`/finance/pix/download/pdf/${paymentId}`, {
-            responseType: "blob",
-        });
-
-        const url = window.URL.createObjectURL(
-            new Blob([response.data], { type: "application/pdf" })
-        );
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `pix_payment_${paymentId}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
     };
+
+
 
     const handleGeneratePix = async () => {
         const newErrors = {
@@ -126,7 +108,6 @@ export default function FinancePage() {
             amount: formData.amount > 0 ? "" : "Informe um valor maior que zero",
             dueDate: formData.dueDate ? "" : "Informe a data de vencimento",
         };
-
         setErrors(newErrors);
 
         if (Object.values(newErrors).some((msg) => msg !== "")) {
@@ -138,7 +119,7 @@ export default function FinancePage() {
             userName: formData.userName.trim(),
             courseTitle: formData.courseTitle.trim(),
             amount: formData.amount,
-            dueDate: formData.dueDate.split("T")[0], // garante formato yyyy-MM-dd
+            dueDate: formData.dueDate.split("T")[0],
         };
 
         if (isNaN(payload.amount) || payload.amount <= 0) {
@@ -152,46 +133,188 @@ export default function FinancePage() {
             toast.dismiss();
             toast.success(`Cobrança PIX gerada para ${formData.userName}!`);
             setOpenForm(false);
-            fetchStudentFinance();
+            fetchStudentFinance(formData.userName);
         } catch (err: any) {
             toast.dismiss();
-            console.log("Payload enviado:", payload);
             console.error("Erro detalhado:", err.response?.data);
-
             const backendMessage = err.response?.data?.message;
-            if (backendMessage?.includes("curso")) {
-                toast.error("O curso informado não existe. Verifique o nome e tente novamente.");
-            } else if (backendMessage?.includes("aluno")) {
-                toast.error("O aluno informado não existe. Verifique o nome e tente novamente.");
-            } else {
-                toast.error(backendMessage || "Erro ao gerar cobrança PIX");
-            }
+            toast.error(backendMessage || "Erro ao gerar cobrança PIX");
+        }
+    };
+
+    const handleMarkAsPaid = async (paymentId: number, userName: string) => {
+        try {
+            await api.post(`/finance/pix/pay/${paymentId}`);
+            toast.success("Mensalidade baixada com sucesso!");
+            fetchStudentFinance(userName);
+            setSnackbarOpen(true);
+        } catch (err) {
+            toast.error("Erro ao dar baixa na mensalidade");
         }
     };
 
     return (
         <div style={{ padding: "20px" }}>
-            {/* Botão à esquerda e barra de pesquisa à direita */}
+            {/* Barra superior */}
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Button variant="contained" color="primary" onClick={() => setOpenForm(true)}>
                     Gerar Cobrança
                 </Button>
 
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <TextField
-                        label="Nome Aluno"
-                        variant="outlined"
-                        size="small"
-                        value={searchName}
-                        onChange={(e) => setSearchName(e.target.value)}
-                        sx={{ width: "300px", mr: 1 }}
-                    />
-                    <Button variant="contained" onClick={fetchStudentFinance}>
-                        Buscar
-                    </Button>
-                </Box>
+                <Autocomplete
+                    options={students}
+                    getOptionLabel={(option) => option?.userName ?? ""}
+                    value={students.find((s) => s.userName === searchName) || null}
+                    onChange={(event, newValue) => {
+                        setSearchName(newValue?.userName || "");
+                        if (newValue?.userName) {
+                            fetchStudentFinance(newValue.userName);
+                        }
+                    }}
+                    renderInput={(params) => (
+                        <TextField {...params} label="Buscar Aluno" margin="dense" />
+                    )}
+                    sx={{ width: 300 }}
+                />
             </Box>
+            {selectedStudent && (
+                <Box sx={{ mb: 3 }}>
+                    {/* Card com dados básicos do aluno */}
+                    <Card sx={{ p: 2, mb: 2 }}>
+                        <CardContent>
+                            <Typography variant="h6">Aluno: {selectedStudent.userName}</Typography>
+                            <Typography>Email: {selectedStudent.userEmail || "Não informado"}</Typography>
+                            <Typography>Telefone: {selectedStudent.phoneNumber || "Não informado"}</Typography>
 
+                            {/* Mostrar cursos e professores matriculados */}
+                            {selectedStudent.courseEnrolled && selectedStudent.courseEnrolled.length > 0 ? (
+                                selectedStudent.courseEnrolled.map((enrollment: CourseEnrollmentDto) => (
+                                    <Box key={enrollment.id} sx={{ mt: 1 }}>
+                                        <Typography>Curso: {enrollment.courseTitle}</Typography>
+                                        <Typography>Professor: {enrollment.teacherName || "Não informado"}</Typography>
+                                    </Box>
+                                ))
+                            ) : (
+                                <Typography>Curso: Não informado</Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Renderizar cobranças */}
+                    {payments.length === 0 ? (
+                        <Card sx={{ p: 2 }}>
+                            <CardContent>
+                                <Typography variant="body1" color="text.secondary">
+                                    Nenhuma cobrança encontrada para este aluno.
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        payments.map((payment) => {
+                            const vencimento = payment.dueDate
+                                ? new Date(payment.dueDate).toLocaleDateString("pt-BR", {
+                                    month: "long",
+                                    year: "numeric",
+                                })
+                                : "Não informado";
+
+                            return (
+                                <Card key={payment.id} sx={{ mb: 2 }}>
+                                    <CardContent>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                                            Curso: {payment.course?.title || "Não informado"}
+                                        </Typography>
+                                        <Typography>
+                                            Professor: {payment.course?.teacher || "Não informado"}
+                                        </Typography>
+                                        <Typography>Valor: R$ {payment.amount}</Typography>
+                                        <Typography>Status: {payment.status}</Typography>
+                                        <Typography>Mês em aberto: {vencimento}</Typography>
+                                        <Typography>
+                                            Data de pagamento: {payment.paidAt ?? "Pendente"}
+                                        </Typography>
+
+                                        {payment.status?.toUpperCase() === "PENDING" && (
+                                            <Button
+                                                variant="contained"
+                                                color="success"
+                                                sx={{ mt: 1 }}
+                                                startIcon={<CheckCircleIcon />}
+                                                onClick={() =>
+                                                    handleMarkAsPaid(payment.id, selectedStudent.userName)
+                                                }
+                                            >
+                                                Dar baixa na mensalidade
+                                            </Button>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            );
+                        })
+                    )}
+                </Box>
+            )}
+
+
+            {/* Snackbar de sucesso */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity="success"
+                    sx={{ width: "100%" }}
+                >
+                    Mensalidade baixada com sucesso!
+                </Alert>
+            </Snackbar>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity="success"
+                    sx={{ width: "100%" }}
+                >
+                    Mensalidade baixada com sucesso!
+                </Alert>
+            </Snackbar>
+            <>
+                <Box sx={{ mb: 3 }}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6} {...({} as any)}>
+                            <Card sx={{ height: "100%", p: 2 }}>
+                                <CardContent>
+                                    <Typography variant="h6">👩‍🎓 Alunos Ativos</Typography>
+                                    <Typography variant="h4">{summary?.activeStudents ?? 0}</Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+
+                        <Grid item xs={12} md={6} {...({} as any)}>
+                            <Card sx={{ height: "100%", p: 2 }}>
+                                <CardContent>
+                                    <Typography variant="h6">📊 Receita Mês</Typography>
+                                    <Typography variant="h4">R$ {summary?.monthlyRevenue ?? 0}</Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+                    </Grid>
+                </Box>
+                <DashboardFinance
+                    totalReceived={summary?.totalReceived ?? 0}
+                    totalPending={summary?.totalPending ?? 0}
+                    defaultRate={summary?.defaultRate ?? 0}
+                    payments={payments}
+                />
+            </>
             {/* Formulário de cobrança PIX */}
             <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="md" fullWidth>
                 <DialogTitle>Gerar Cobrança PIX</DialogTitle>
@@ -208,8 +331,6 @@ export default function FinancePage() {
                         error={!!errors.dueDate}
                         helperText={errors.dueDate}
                     />
-
-
                     <Autocomplete
                         options={students}
                         getOptionLabel={(option) => option?.userName ?? ""}
@@ -221,10 +342,6 @@ export default function FinancePage() {
                             <TextField {...params} label="Nome do Aluno" margin="dense" />
                         )}
                     />
-
-
-
-
                     <Autocomplete
                         options={courses}
                         getOptionLabel={(option) => option?.title ?? ""}
@@ -236,7 +353,6 @@ export default function FinancePage() {
                             <TextField {...params} label="Nome do Curso" margin="dense" />
                         )}
                     />
-
                     <NumericFormat
                         customInput={TextField}
                         label="Valor da Cobrança (R$)"
@@ -254,8 +370,6 @@ export default function FinancePage() {
                         error={!!errors.amount}
                         helperText={errors.amount}
                     />
-
-
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleGeneratePix} variant="contained" color="primary">
@@ -263,48 +377,6 @@ export default function FinancePage() {
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            {Array.isArray(payments) && payments.map((payment) => (
-                <Card key={payment.id}>
-                    <CardContent>
-                        <Typography>Curso: {payment.course?.title}</Typography>
-                        <Typography>Valor: R$ {payment.amount}</Typography>
-                        <Typography>Status: {payment.status}</Typography>
-                        <Typography>Data: {payment.paidAt ?? "Pendente"}</Typography>
-                    </CardContent>
-                </Card>
-            ))}
-
-
-            {summary && (
-                <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-                        <Card sx={{ flex: 1, mr: 2 }}>
-                            <CardContent>
-                                <Typography variant="h6">👩‍🎓 Alunos Ativos</Typography>
-                                <Typography variant="h4">{summary.activeStudents ?? 0}</Typography>
-                            </CardContent>
-                        </Card>
-
-                        <Card sx={{ flex: 1 }}>
-                            <CardContent>
-                                <Typography variant="h6">📊 Receita Mês</Typography>
-                                <Typography variant="h4">R$ {summary.monthlyRevenue ?? 0}</Typography>
-                            </CardContent>
-                        </Card>
-                    </Box>
-
-                    <DashboardFinance
-                        totalReceived={summary.totalReceived}
-                        totalPending={summary.totalPending}
-                        defaultRate={summary.defaultRate}
-                    />
-                </>
-            )}
-
-
         </div>
     );
 }
-
-

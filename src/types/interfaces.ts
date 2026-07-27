@@ -122,4 +122,20 @@ export interface FinanceSummary {
   monthlyRevenue: number;
 }
 
+export interface Payment {
+  id: number;
+  amount: number;
+  status: string;
+  dueDate?: string;
+  paidAt?: string;
+  course?: { title: string; teacher?: string };
+  student?: { userName: string };
+}
+
+export interface FinanceProps {
+  totalReceived: number;
+  totalPending: number;
+  defaultRate?: number;
+  payments: Payment[];
+}
 
