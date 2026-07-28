@@ -3,6 +3,10 @@ import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "./hooks/useAuth";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Anexa",
@@ -18,7 +22,7 @@ export default function RootLayout({
 }) {
   
   return (
-    <html lang="pt-br">
+    <html lang="pt-br" className={cn("font-sans", geist.variable)}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#2563eb" />
