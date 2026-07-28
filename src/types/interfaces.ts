@@ -120,12 +120,14 @@ export interface FinanceSummary {
   defaultRate: number;
   activeStudents: number;
   monthlyRevenue: number;
+  message?: string;
 }
 
+export type PaymentStatus = "Pending" | "Paid" | "Cancelled";
 export interface Payment {
   id: number;
   amount: number;
-  status: string;
+  status: PaymentStatus;
   dueDate?: string;
   paidAt?: string;
   course?: { title: string; teacher?: string };

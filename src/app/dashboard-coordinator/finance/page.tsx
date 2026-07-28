@@ -144,7 +144,7 @@ export default function FinancePage() {
 
     const handleMarkAsPaid = async (paymentId: number, userName: string) => {
         try {
-            await api.post(`/finance/pix/pay/${paymentId}`);
+            await api.post(`/finance/pix/confirm/${paymentId}`);
             toast.success("Mensalidade baixada com sucesso!");
             fetchStudentFinance(userName);
             setSnackbarOpen(true);
@@ -313,6 +313,7 @@ export default function FinancePage() {
                     totalPending={summary?.totalPending ?? 0}
                     defaultRate={summary?.defaultRate ?? 0}
                     payments={payments}
+                    onMarkAsPaid={handleMarkAsPaid}
                 />
             </>
             {/* Formulário de cobrança PIX */}
