@@ -14,8 +14,7 @@ export default function CreateTeacherPage() {
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      
+    <div className="p-4 max-w-md mx-auto">      
       <TeacherForm onSave={handleSave} />
     </div>
   );

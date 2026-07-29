@@ -6,6 +6,16 @@ import api from "@/app/services/api";
 import { toast } from "react-toastify";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<CourseReadDto[]>([]);
@@ -30,51 +40,56 @@ export default function CoursesPage() {
           onClick: async () => {
             try {
               await api.delete(`/courses/${id}`);
-              setCourses(courses.filter(c => c.id !== id));
+              setCourses(courses.filter((c) => c.id !== id));
               toast.success("Curso excluído com sucesso!");
             } catch {
               toast.error("Erro ao excluir curso");
             }
-          }
+          },
         },
-        {
-          label: "Cancelar"
-        }
-      ]
+        { label: "Cancelar" },
+      ],
     });
   };
 
-
-
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-[#163E72] mb-4">Cursos</h1>
-      <table className="w-full bg-white shadow-md rounded-lg">
-        <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="p-3">Título</th>
-            <th className="p-3">Descrição</th>
-            <th className="p-3">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses.map(course => (
-            <tr key={course.id} className="border-b">
-              <td className="p-3">{course.title}</td>
-              <td className="p-3">{course.description}</td>
-              <td className="p-3">
-                <button className="text-blue-600 hover:underline">Detalhes</button>
-                <button
-                  onClick={() => handleDelete(course.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  🗑️ Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-[#163E72]">Cursos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Título</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {courses.map((course) => (
+                <TableRow key={course.id}>
+                  <TableCell>{course.title}</TableCell>
+                  <TableCell>{course.description}</TableCell>
+                  <TableCell className="space-x-2">
+                    <Button variant="ghost" className="text-blue-600 hover:underline">
+                      Detalhes
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleDelete(course.id)}
+                    >
+                      Excluir
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

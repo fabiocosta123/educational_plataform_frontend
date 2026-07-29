@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../services/api";
-
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface TeacherFormProps {
   onSave: (data: any) => void;
@@ -17,10 +19,8 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
   const [cpf, setCpf] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const payload = {
         UserName: userName,
@@ -30,10 +30,8 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
         BirthDate: new Date(birthDate).toISOString(),
         phoneNumber,
         CPF: cpf || "",
-        Role: "Teacher"
+        Role: "Teacher",
       };
-
-      console.log("Payload enviado:", payload);
 
       const response = await api.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/teachers`,
@@ -42,93 +40,46 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
 
       onSave(response.data);
       toast.success("Professor criado com sucesso!");
-      setUserName("");
-      setUserEmail("");
-      setPassword("");
-      setBirthDate("");
-      setCpf("");
+      setUserName(""); setUserEmail(""); setPassword(""); setBirthDate(""); setCpf(""); setPhoneNumber("");
     } catch (error: any) {
-      console.error("Erro detalhado:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
       const message =
         error.response?.data?.title ||
         error.response?.data?.errors ||
         "Erro ao criar professor";
       toast.error(message);
     }
-
   };
 
-
   function formatCpf(value: string) {
-    return value
-      .replace(/\D/g, "")
-      .slice(0, 11)
+    return value.replace(/\D/g, "").slice(0, 11)
       .replace(/(\d{3})(\d)/, "$1.$2")
       .replace(/(\d{3})(\d)/, "$1.$2")
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   }
 
   function formatPhone(value: string) {
-    return value
-      .replace(/\D/g, "")        // remove tudo que não for número
-      .slice(0, 11)              // limita a 11 dígitos
-      .replace(/(\d{2})(\d)/, "($1) $2") // adiciona parênteses no DDD
-      .replace(/(\d{5})(\d{4})$/, "$1-$2"); // adiciona hífen
+    return value.replace(/\D/g, "").slice(0, 11)
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d{4})$/, "$1-$2");
   }
 
-
-
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mb-6">
-      <h3 className="text-lg font-semibold text-[#163E72] mb-4">Novo Professor</h3>
-
-      <input type="text" placeholder="Nome do professor" value={userName}
-        onChange={(e) => setUserName(e.target.value)} className="w-full border rounded p-2 mb-4" required />
-
-        <input
-  type="text"
-  placeholder="Telefone (00) 00000-0000"
-  value={phoneNumber}
-  onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
-  className="w-full border rounded p-2 mb-4"
-/>
-
-
-      <input type="email" placeholder="Email" value={userEmail}
-        onChange={(e) => setUserEmail(e.target.value)} className="w-full border rounded p-2 mb-4" required />
-
-      <input
-        type="text"
-        value="Professor"
-        readOnly
-        className="w-full border rounded p-2 mb-4 bg-gray-100"
-      />
-
-
-
-      <input type="password" placeholder="Senha" value={password}
-        onChange={(e) => setPassword(e.target.value)} className="w-full border rounded p-2 mb-4" required />
-
-      <input type="date" placeholder="Data de nascimento" value={birthDate}
-        onChange={(e) => setBirthDate(e.target.value)} className="w-full border rounded p-2 mb-4" required />
-
-      {/* CPF com máscara */}
-      <input
-        type="text"
-        placeholder="CPF (000.000.000-00)"
-        value={cpf}
-        onChange={(e) => setCpf(formatCpf(e.target.value))}
-        className="w-full border rounded p-2 mb-4"
-      />
-
-
-      <button type="submit" className="bg-[#163E72] text-white px-4 py-2 rounded hover:bg-[#255690] transition">
-        Salvar Professor
-      </button>
-    </form>
+    <Card className="mb-6 shadow-sm rounded-lg">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-[#163E72]">Novo Professor</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input placeholder="Nome do professor" value={userName} onChange={(e) => setUserName(e.target.value)} required />
+          <Input placeholder="Telefone (00) 00000-0000" value={phoneNumber} onChange={(e) => setPhoneNumber(formatPhone(e.target.value))} />
+          <Input type="email" placeholder="Email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} required />
+          <Input value="Professor" readOnly className="bg-gray-100" />
+          <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Input type="date" placeholder="Data de nascimento" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} required />
+          <Input placeholder="CPF (000.000.000-00)" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} />
+          <Button type="submit" className="w-full sm:w-auto bg-[#163E72]">Salvar Professor</Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

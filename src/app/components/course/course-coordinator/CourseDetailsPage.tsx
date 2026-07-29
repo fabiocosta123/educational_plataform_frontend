@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import api from "@/app/services/api";
 import { useParams } from "next/navigation";
 import { CourseReadDto } from "../../../../types/interfaces";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function CourseDetailsPage() {
   const { id } = useParams(); 
@@ -30,45 +31,55 @@ export default function CourseDetailsPage() {
   if (!course) return <p className="text-center mt-10">Curso não encontrado.</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-[#163E72] mb-4">{course.title}</h1>
-      <p className="text-gray-700 mb-6">{course.description}</p>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold text-[#163E72]">{course.title}</h1>
+      <p className="text-gray-700">{course.description}</p>
 
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-        <h2 className="text-lg font-bold text-[#163E72] mb-2">Resumo</h2>
-        
-        <p><strong>Professor:</strong> {course.teacherName}</p>
-       
-        <p><strong>Alunos inscritos:</strong> {course.enrolledUsers?.length ?? 0}</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p><strong>Professor:</strong> {course.teacherName}</p>
+          <p><strong>Alunos inscritos:</strong> {course.enrolledUsers?.length ?? 0}</p>
+        </CardContent>
+      </Card>
 
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-        <h2 className="text-lg font-bold text-[#163E72] mb-2">Aulas</h2>
-        {course.lessons && course.lessons.length > 0 ? (
-          <ul className="list-disc pl-6">
-            {course.lessons.map((lesson) => (
-              <li key={lesson.id}>
-                {lesson.title} - {new Date(lesson.date).toLocaleDateString()}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>Nenhuma aula cadastrada.</p>
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Aulas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {course.lessons?.length ? (
+            <ul className="list-disc pl-6">
+              {course.lessons.map((lesson) => (
+                <li key={lesson.id}>
+                  {lesson.title} - {new Date(lesson.date).toLocaleDateString()}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Nenhuma aula cadastrada.</p>
+          )}
+        </CardContent>
+      </Card>
 
-      <div className="bg-white p-4 rounded-lg shadow-md">
-        <h2 className="text-lg font-bold text-[#163E72] mb-2">Alunos</h2>
-        {course.enrolledUsers && course.enrolledUsers.length > 0 ? (
-          <ul className="list-disc pl-6">
-            {course.enrolledUsers.map((student) => (
-              <li key={student.id}>{student.userName}</li>
-            ))}
-          </ul>
-        ) : (
-          <p>Nenhum aluno inscrito.</p>
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Alunos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {course.enrolledUsers?.length ? (
+            <ul className="list-disc pl-6">
+              {course.enrolledUsers.map((student, index) => (
+                <li key={`${student.id}-${student.userName}`}>{student.userName}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Nenhum aluno inscrito.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

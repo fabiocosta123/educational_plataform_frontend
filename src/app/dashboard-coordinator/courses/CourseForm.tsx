@@ -5,6 +5,19 @@ import { toast } from "react-toastify";
 import { CourseReadDto } from "@/types/interfaces";
 import api from "../../services/api";
 
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
 interface Teacher {
   id: number;
   userName: string;
@@ -18,18 +31,17 @@ interface CourseFormProps {
 export default function CourseForm({ onSave, initialData }: CourseFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [teacherId, setTeacherId] = useState<number | null>(null);
+  const [teacherId, setTeacherId] = useState<string>(""); // usar string para compatibilidade com Select
   const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || "");
       setDescription(initialData.description || "");
-      setTeacherId(initialData.teacherId || null);
+      setTeacherId(initialData.teacherId?.toString() || "");
     }
   }, [initialData]);
 
-  // Carrega lista de professores
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
@@ -44,24 +56,19 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
     fetchTeachers();
   }, []);
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       if (initialData) {
-       
         const response = await api.put(
           `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${initialData.id}`,
-          { id: initialData.id, title, description, teacherId }
+          { id: initialData.id, title, description, teacherId: Number(teacherId) }
         );
         onSave(response.data);
         toast.success("Curso atualizado com sucesso!");
-       
-       
       } else {
-        // Criação
-        const payload = { title, description, teacherId };
+        const payload = { title, description, teacherId: Number(teacherId) };
         const response = await api.post<CourseReadDto>(
           `${process.env.NEXT_PUBLIC_API_URL}/api/courses`,
           payload
@@ -70,55 +77,71 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
         toast.success("Curso criado com sucesso!");
       }
 
-      
       setTitle("");
       setDescription("");
-      setTeacherId(null);
+      setTeacherId("");
     } catch {
       toast.error("Erro ao salvar curso");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mb-6">
-      <h3 className="text-lg font-semibold text-[#163E72] mb-4">
-        {initialData ? "Editar Curso" : "Novo Curso"}
-      </h3>
+    <Card className="mb-6 shadow-sm rounded-lg">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-[#163E72]">
+          {initialData ? "Editar Curso" : "Novo Curso"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="title">Título</Label>
+            <Input
+              id="title"
+              type="text"
+              placeholder="Título do curso"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
 
-      <input
-        type="text"
-        placeholder="Título do curso"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border rounded p-2 mb-4"
-        required
-      />
+          <div>
+            <Label htmlFor="description">Descrição</Label>
+            <Textarea
+              id="description"
+              placeholder="Descrição do curso"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
 
-      <textarea
-        placeholder="Descrição do curso"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full border rounded p-2 mb-4"
-      />
+          <div>
+            <Label>Professor</Label>
+            <Select
+              value={teacherId}
+              onValueChange={(value) => setTeacherId(value ?? "")}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um professor">
+                  {teachers.find((t) => t.id.toString() === teacherId)?.userName}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {teachers.map((t) => (
+                  <SelectItem key={t.id} value={t.id.toString()}>
+                    {t.userName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      <select
-        value={teacherId ?? ""}
-        onChange={(e) => setTeacherId(Number(e.target.value))}
-        className="w-full border rounded p-2 mb-4"
-        required
-      >
-        <option value="">Selecione um professor</option>
-        {teachers.map((t) => (
-          <option key={t.id} value={t.id}>{t.userName}</option>
-        ))}
-      </select>
-
-      <button
-        type="submit"
-        className="bg-[#163E72] text-white px-4 py-2 rounded hover:bg-[#255690] transition"
-      >
-        {initialData ? "Atualizar Curso" : "Salvar Curso"}
-      </button>
-    </form>
+          <Button type="submit" className="w-full sm:w-auto bg-[#163E72]">
+            {initialData ? "Atualizar Curso" : "Salvar Curso"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

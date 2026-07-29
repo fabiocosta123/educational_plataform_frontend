@@ -3,6 +3,10 @@
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function CourseForm({ onSave }: { onSave: (data: any) => void }) {
   const [title, setTitle] = useState("");
@@ -15,7 +19,7 @@ export default function CourseForm({ onSave }: { onSave: (data: any) => void }) 
       const payload = {
         title,
         description,
-        creatorId: 1, 
+        creatorId: 1,
       };
 
       const response = await axios.post(
@@ -34,31 +38,33 @@ export default function CourseForm({ onSave }: { onSave: (data: any) => void }) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mb-6">
-      <h3 className="text-lg font-semibold text-[#163E72] mb-4">Novo Curso</h3>
+    <Card className="mb-6 shadow-sm rounded-lg">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-[#163E72]">
+          Novo Curso
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            type="text"
+            placeholder="Título do curso"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
 
-      <input
-        type="text"
-        placeholder="Título do curso"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border rounded p-2 mb-4"
-        required
-      />
+          <Textarea
+            placeholder="Descrição do curso"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
 
-      <textarea
-        placeholder="Descrição do curso"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full border rounded p-2 mb-4"
-      />
-
-      <button
-        type="submit"
-        className="bg-[#163E72] text-white px-4 py-2 rounded hover:bg-[#255690] transition"
-      >
-        Salvar Curso
-      </button>
-    </form>
+          <Button type="submit" className="w-full sm:w-auto">
+            Salvar Curso
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
