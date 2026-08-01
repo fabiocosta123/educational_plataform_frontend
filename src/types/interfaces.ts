@@ -145,3 +145,14 @@ export interface RegisterFormProps {
   courseId?: string;
 }
 
+export interface DashboardFinanceProps {
+  totalReceived: number;
+  totalPending: number;
+  defaultRate: number;
+  payments: Payment[];
+  onMarkAsPaid: (id: number, userName: string) => void;
+  showAll?: boolean;
+  setShowAll: (value: boolean) => void;
+  statusFilter?: string;
+  studentFilter?: string;
+}
