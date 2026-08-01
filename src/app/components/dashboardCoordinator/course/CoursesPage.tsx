@@ -15,10 +15,13 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<CourseReadDto[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -52,33 +55,47 @@ export default function CoursesPage() {
     });
   };
 
+  const filteredCourses = courses.filter((c) =>
+    c.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const visibleCourses = showAll ? filteredCourses : filteredCourses.slice(0, 6);
+
   return (
-    <div className="p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-[#163E72]">Cursos</CardTitle>
+    <div className="p-6 space-y-6">
+      <Card className="shadow-sm border rounded-lg">
+        <CardHeader className="flex justify-between items-center">
+          <Input
+            placeholder="Buscar curso..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-72 border-gray-300"
+          />
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="font-semibold text-[#163E72]">Título</TableHead>
+                <TableHead className="font-semibold text-[#163E72]">Descrição</TableHead>
+                <TableHead className="font-semibold text-[#163E72]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {courses.map((course) => (
+              {visibleCourses.map((course) => (
                 <TableRow key={course.id}>
                   <TableCell>{course.title}</TableCell>
                   <TableCell>{course.description}</TableCell>
                   <TableCell className="space-x-2">
-                    <Button variant="ghost" className="text-blue-600 hover:underline">
-                      Detalhes
-                    </Button>
-
                     <Button
                       variant="ghost"
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Detalhes
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-red-600 hover:text-red-800"
                       onClick={() => handleDelete(course.id)}
                     >
                       Excluir
@@ -88,6 +105,18 @@ export default function CoursesPage() {
               ))}
             </TableBody>
           </Table>
+
+          {filteredCourses.length > 6 && (
+            <div className="flex justify-center mt-6">
+              <Button
+                variant="outline"
+                className="border-gray-300"
+                onClick={() => setShowAll(!showAll)}
+              >
+                {showAll ? "Mostrar menos" : "Mostrar mais"}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
