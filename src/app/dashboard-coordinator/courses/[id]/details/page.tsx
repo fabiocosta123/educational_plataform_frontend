@@ -1,6 +1,6 @@
 "use client";
 
-import CourseDetailsPage from "../../../../components/course/course-coordinator/CourseDetailsPage";
+import CourseDetailsPage from "../../../../components/dashboardCoordinator/course/CourseDetailsPage";
 
 export default function CourseDetailsRoute({ params }: { params: { id: string } }) {
   return <CourseDetailsPage />;

@@ -43,32 +43,53 @@ export default function StudentForm({ student, onSave }: StudentFormProps) {
     e.preventDefault();
 
     try {
-      const payload = {
-        userName,
-        userEmail,
-        cpf,
-        phoneNumber,
-        birthDate: new Date(birthDate).toISOString(),
-        courseEnrollments: [
-          {
-            courseId,
-            status
-          }
-        ]
-      };
-
       let response;
+
       if (student) {
-        // edição
+        // edição usa StudentUpdateDto
+        const payload = {
+          userName,
+          userEmail,
+          phoneNumber,
+          birthDate: new Date(birthDate).toISOString(),
+          profile: 1, // enum Student
+          courseEnrollments: [
+            {
+              courseId,
+              status
+            }
+          ]
+        };
+
         response = await api.put(`/users/${student.id}`, payload);
-        toast.success("Aluno atualizado com sucesso!");
       } else {
-        // criação
+        // criação usa StudentCreateDto
+        const payload = {
+          userName,
+          userEmail,
+          cpf,
+          phoneNumber,
+          birthDate: new Date(birthDate).toISOString(),
+          courseId,
+          teacherId,
+          status
+        };
+
         response = await api.post(`/users/students`, payload);
-        toast.success("Aluno criado com sucesso!");
       }
 
       onSave(response.data);
+
+      // limpa os campos
+      setUserName("");
+      setUserEmail("");
+      setCpf("");
+      setPhoneNumber("");
+      setBirthDate("");
+      setCourseId(0);
+      setTeacherId(0);
+      setStatus("Ativo");
+
     } catch (error: any) {
       const message =
         error.response?.data?.title ||
@@ -77,6 +98,9 @@ export default function StudentForm({ student, onSave }: StudentFormProps) {
       toast.error(message);
     }
   };
+
+
+
 
 
   function formatCpf(value: string) {

@@ -1,5 +1,5 @@
 "use client";
-import DashboardSidebar from "../dashboard/DashboardSidebar";
+import DashboardSidebar from "./DashboardSidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (

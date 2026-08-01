@@ -4,14 +4,13 @@ import { FaWhatsapp } from "react-icons/fa";
 export default function Footer() {
   return (
     <>
-      {/* Rodapé */}
       <footer className="w-full bg-white py-4 px-6 sm:px-8 flex flex-col sm:flex-row justify-center items-center text-[#163E72] shadow-md gap-2">
         <p className="text-xs sm:text-sm font-medium text-center sm:text-left">
           Desenvolvido por <span className="font-bold">Fábio Costa</span>
         </p>
       </footer>
 
-      {/* Ícone do WhatsApp fixo */}
+      {/* Ícone WhatsApp fixo */}
       <a
         href="https://wa.me/5513996285971"
         target="_blank"

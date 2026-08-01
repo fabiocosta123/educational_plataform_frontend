@@ -141,3 +141,7 @@ export interface FinanceProps {
   payments: Payment[];
 }
 
+export interface RegisterFormProps {
+  courseId?: string;
+}
+
