@@ -62,7 +62,7 @@ export default function StudentDetailsPage() {
                   : 0;
 
                 return (
-                  <li key={course.id} className="border rounded p-4">
+                  <li key={`${student.id}-${course.courseId}`} className="border rounded p-4">
                     <p><strong>Curso:</strong> {course.courseTitle}</p>
                     {course.teacherName && <p><strong>Professor:</strong> {course.teacherName}</p>}
                     <p><strong>Status:</strong> {course.status}</p>
@@ -80,6 +80,17 @@ export default function StudentDetailsPage() {
                         ></div>
                       </div>
                     </div>
+
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/dashboard-coordinator/students/${student.id}/edit?courseId=${course.courseId}`
+                        )
+                      }
+                      className="mt-3 bg-blue-600 text-white px-3 py-2 rounded"
+                    >
+                      Editar matrícula
+                    </button>
                   </li>
                 );
               })}
@@ -90,12 +101,7 @@ export default function StudentDetailsPage() {
         </section>
       </CardContent>
       <CardFooter className="flex gap-3">
-        <Button
-          onClick={() => router.push(`/dashboard-coordinator/students/${student.id}/edit`)}
-          className="bg-[#163E72] hover:bg-gray-700 text-white"
-        >
-          Editar
-        </Button>
+        
         <Button
           onClick={() => router.push("/dashboard-coordinator/students")}
           className="bg-gray-500 hover:bg-gray-600 text-white"

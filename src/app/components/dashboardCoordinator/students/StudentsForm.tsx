@@ -1,69 +1,95 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import api from "../../../services/api";
 import { toast } from "react-toastify";
+
 import { StudentDto } from "@/types/interfaces";
+
+import { useStudentForm } from "./hooks/useStudentForm";
+
+import PersonalDataSection from "./PersonalDataSection";
+import EnrollmentSection from "./EnrollmentSection";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface StudentFormProps {
   student?: StudentDto;
+  editingCourseId?: number;
   onSave: (data: any) => void;
 }
 
-export default function StudentForm({ student, onSave }: StudentFormProps) {
-  const [userName, setUserName] = useState(student?.userName ?? "");
-  const [userEmail, setUserEmail] = useState(student?.userEmail ?? "");
-  const [birthDate, setBirthDate] = useState(student?.birthDate?.split("T")[0] ?? "");
-  const [cpf, setCpf] = useState(student?.cpf ?? "");
-  const [phoneNumber, setPhoneNumber] = useState(student?.phoneNumber ?? "");
+export default function StudentForm({
+  student,
+  editingCourseId,
+  onSave,
+}: StudentFormProps) {
 
+  const {
+    userName,
+    setUserName,
 
-  const [courseId, setCourseId] = useState(student?.courseEnrolled?.[0]?.courseId ?? 0);
-  const [teacherId, setTeacherId] = useState(0);
-  const [status, setStatus] = useState(student?.courseEnrolled?.[0]?.status ?? "Ativo");
+    userEmail,
+    setUserEmail,
 
-  const [courses, setCourses] = useState<{ id: number; title: string }[]>([]);
-  const [teachers, setTeachers] = useState<{ id: number; userName: string }[]>([]);
+    birthDate,
+    setBirthDate,
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const coursesRes = await api.get("/courses");
-        setCourses(coursesRes.data);
-        const teachersRes = await api.get("/teachers/list");
-        setTeachers(teachersRes.data);
-      } catch {
-        toast.error("Erro ao carregar cursos/professores");
-      }
-    }
-    loadData();
-  }, []);
+    cpf,
+    setCpf,
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    phoneNumber,
+    setPhoneNumber,
+
+    courseId,
+    setCourseId,
+
+    status,
+    setStatus,
+
+    courses,
+    selectedCourse,
+
+    clearForm,
+  } = useStudentForm({
+    student,
+    editingCourseId,
+  });
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     try {
       let response;
 
       if (student) {
-        // edição usa StudentUpdateDto
         const payload = {
           userName,
           userEmail,
           phoneNumber,
           birthDate: new Date(birthDate).toISOString(),
-          profile: 1, // enum Student
-          courseEnrollments: [
-            {
-              courseId,
-              status
-            }
-          ]
+          profile: 1,
+
+          currentCourseId: editingCourseId ?? courseId,
+          newCourseId: courseId,
+
+          status,
         };
 
-        response = await api.put(`/users/${student.id}`, payload);
+        console.log("PUT /users payload:", payload);
+
+        response = await api.put(
+          `/users/${student.id}`,
+          payload
+        );
       } else {
-        // criação usa StudentCreateDto
         const payload = {
           userName,
           userEmail,
@@ -71,96 +97,90 @@ export default function StudentForm({ student, onSave }: StudentFormProps) {
           phoneNumber,
           birthDate: new Date(birthDate).toISOString(),
           courseId,
-          teacherId,
-          status
+          status,
         };
 
-        response = await api.post(`/users/students`, payload);
+        console.log("POST /users/students payload:", payload);
+
+        response = await api.post(
+          "/users/students",
+          payload
+        );
       }
 
       onSave(response.data);
-
-      // limpa os campos
-      setUserName("");
-      setUserEmail("");
-      setCpf("");
-      setPhoneNumber("");
-      setBirthDate("");
-      setCourseId(0);
-      setTeacherId(0);
-      setStatus("Ativo");
+      clearForm();
 
     } catch (error: any) {
-      const message =
-        error.response?.data?.title ||
-        error.response?.data?.errors ||
-        "Erro ao salvar aluno";
+      console.error("Erro ao salvar aluno:", error);
+
+      let message = "Erro ao salvar aluno.";
+
+      if (typeof error.response?.data === "string") {
+        message = error.response.data;
+      } else if (error.response?.data?.title) {
+        message = error.response.data.title;
+      } else if (error.response?.data?.errors) {
+        message = Object.values(error.response.data.errors)
+          .flat()
+          .join("\n");
+      }
+
       toast.error(message);
     }
-  };
-
-
-
-
-
-  function formatCpf(value: string) {
-    return value.replace(/\D/g, "").slice(0, 11)
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   }
-
-  function formatPhone(value: string) {
-    return value.replace(/\D/g, "").slice(0, 11)
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d{4})$/, "$1-$2");
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mb-6">
-      <h3 className="text-lg font-semibold text-[#163E72] mb-4">
-        {student ? "Editar Estudante" : "Novo Estudante"}
-      </h3>
+    <Card className="w-full shadow-lg">
 
-      <input type="text" placeholder="Nome do aluno" value={userName}
-        onChange={(e) => setUserName(e.target.value)} className="w-full border rounded p-2 mb-4" required />
+      <CardHeader>
+        <CardTitle>
+          {student ? "Editar Aluno" : "Novo Aluno"}
+        </CardTitle>
+      </CardHeader>
 
-      <input type="text" placeholder="Telefone (00) 00000-0000" value={phoneNumber}
-        onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
-        className="w-full border rounded p-2 mb-4" />
+      <CardContent>
 
-      <input type="email" placeholder="Email" value={userEmail}
-        onChange={(e) => setUserEmail(e.target.value)} className="w-full border rounded p-2 mb-4" required />
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
 
-      <input type="date" placeholder="Data de nascimento" value={birthDate}
-        onChange={(e) => setBirthDate(e.target.value)} className="w-full border rounded p-2 mb-4" required />
+          <PersonalDataSection
+            userName={userName}
+            setUserName={setUserName}
+            userEmail={userEmail}
+            setUserEmail={setUserEmail}
+            cpf={cpf}
+            setCpf={setCpf}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+            birthDate={birthDate}
+            setBirthDate={setBirthDate}
+            isEditing={!!student}
+          />
 
-      <input type="text" placeholder="CPF (000.000.000-00)" value={cpf}
-        onChange={(e) => setCpf(formatCpf(e.target.value))}
-        className="w-full border rounded p-2 mb-4" />
+          <Separator />
 
-      <select value={courseId} onChange={(e) => setCourseId(Number(e.target.value))}
-        className="w-full border rounded p-2 mb-4">
-        <option value={0}>Selecione um curso</option>
-        {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
-      </select>
+          <EnrollmentSection
+            courses={courses}
+            courseId={courseId}
+            setCourseId={setCourseId}
+            teacherName={selectedCourse?.teacherName ?? ""}
+            status={status}
+            setStatus={setStatus}
+          />
 
-      <select value={teacherId} onChange={(e) => setTeacherId(Number(e.target.value))}
-        className="w-full border rounded p-2 mb-4">
-        <option value={0}>Selecione um professor</option>
-        {teachers.map(t => <option key={t.id} value={t.id}>{t.userName}</option>)}
-      </select>
+          <Button
+            type="submit"
+            className="w-full"
+          >
+            {student ? "Salvar Alterações" : "Cadastrar Aluno"}
+          </Button>
 
-      <select value={status} onChange={(e) => setStatus(e.target.value)}
-        className="w-full border rounded p-2 mb-4">
-        <option value="Ativo">Ativo</option>
-        <option value="Trancado">Trancado</option>
-        <option value="Concluido">Concluído</option>
-      </select>
+        </form>
 
-      <button type="submit" className="bg-[#163E72] text-white px-4 py-2 rounded hover:bg-[#255690] transition">
-        {student ? "Salvar Alterações" : "Salvar Estudante"}
-      </button>
-    </form>
+      </CardContent>
+
+    </Card>
   );
 }

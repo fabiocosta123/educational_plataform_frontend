@@ -27,6 +27,22 @@ export interface CourseUpdateDto {
   description?: string;
 }
 
+export interface CourseEnrollmentDto {
+  id: number;
+  userId: number;
+  courseId: number;
+
+  userName?: string;
+  courseTitle?: string;
+  teacherName?: string;
+
+  progressPercentage: number;
+  status: string;
+
+  completedLessons: number;
+  totalLessons: number;
+}
+
 
 export interface User {
     id: number;
@@ -40,9 +56,19 @@ export interface User {
 
 export interface UserReadDto {
   id: number;
-  userName: string;
-  email?: string;
-  profile?: string; 
+
+  userName?: string;
+  userEmail?: string;
+  cpf?: string;
+  phoneNumber?: string;
+  birthDate: string;
+
+  userProfile?: string;
+  role: string;
+
+  courseEnrolled: CourseEnrollmentDto[];
+
+  coursesCreated: CourseReadDto[];
 }
 
 
@@ -87,18 +113,6 @@ export interface TeacherReadDto extends UserReadDto {
   courses: CourseReadDto[];
 }
 
-export interface CourseEnrollmentDto {
-  id: number;
-  courseTitle: string;
-  status: string;
-  teacherName?: string;
-  userName?: string;
-  progressPercentage?: number;
-  completedLessons?: number;
-  totalLessons?: number;
-  courseId: number;
-  teacherId: number;
-}
 
 export interface StudentDto {
   id: number;
@@ -108,7 +122,6 @@ export interface StudentDto {
   birthDate?: string;
   phoneNumber?: string;
   courseEnrolled: CourseEnrollmentDto[];
-
 }
 
 export interface FinanceSummary {
