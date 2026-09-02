@@ -9,11 +9,39 @@ export interface CourseReadDto {
   id: number;
   title: string;
   description?: string;
-  teacherId: number;
-  teacherName: string; 
+
+  teacherId?: number;
+  teacherName: string;
+
   lessonsCount: number;
-  lessons: { id: number; title: string; date: string }[];
-  enrolledUsers: { id: number; userName: string }[];
+
+  modules: CourseModuleReadDto[];
+
+  enrolledUsers: {
+    id: number;
+    userName: string;
+  }[];
+}
+
+export interface CourseModuleReadDto {
+  id: number;
+  name: string;
+  description?: string;
+  order: number;
+  lessons: LessonReadDto[];
+}
+
+export interface LessonReadDto {
+  id: number;
+  title: string;
+  description?: string;
+  videoUrl: string;
+  pdfUrl?: string;
+  order: number;
+  durationSeconds: number;
+  isPublished: boolean;
+  courseModuleId: number;
+  teacherId?: number;
 }
 
 export interface CourseCreateDto {
@@ -43,6 +71,15 @@ export interface CourseEnrollmentDto {
   totalLessons: number;
 }
 
+export interface LessonCreateDto {
+  title: string;
+  description?: string;
+  videoUrl: string;
+  durationSeconds: number;
+  order: number;
+  isPublished: boolean;
+  courseModuleId: number;
+}
 
 export interface User {
     id: number;
