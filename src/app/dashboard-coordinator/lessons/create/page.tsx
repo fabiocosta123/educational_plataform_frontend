@@ -1,7 +1,10 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+import api from "../../../services/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,132 +13,252 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 import type {
-  TeacherReadDto,
   CourseReadDto,
   CourseModuleReadDto,
 } from "@/types/interfaces";
 
-import api from "../../../services/api";
-
 export default function CreateLessonPage() {
   const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
 
-  const [teachers, setTeachers] = useState<TeacherReadDto[]>([]);
-  const [courses, setCourses] = useState<CourseReadDto[]>([]);
+  const courseIdFromUrl = searchParams.get("courseId");
+  const moduleIdFromUrl = searchParams.get("moduleId");  
+
+  const [course, setCourse] = useState<CourseReadDto | null>(null);
   const [modules, setModules] = useState<CourseModuleReadDto[]>([]);
 
-  const [teacherId, setTeacherId] = useState("");
-  const [courseId, setCourseId] = useState("");
-  const [moduleId, setModuleId] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [durationSeconds, setDurationSeconds] = useState("0");
+  const [order, setOrder] = useState("1");
+  const [isPublished, setIsPublished] = useState(true);
+  const [material, setMaterial] = useState<File | null>(null);  
 
-  const [loadingTeachers, setLoadingTeachers] = useState(true);
-  const [loadingCourses, setLoadingCourses] = useState(false);
-  const [loadingModules, setLoadingModules] = useState(false);
-
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
-
-  // =========================================================
-  // Carrega professores
-  // =========================================================
-
+  
   useEffect(() => {
-    async function loadTeachers() {
-      try {
-        setLoadingTeachers(true);
-        setError("");
-
-        const response = await api.get("/teachers");
-
-        setTeachers(response.data);
-      } catch (err) {
-        console.error("Erro ao carregar professores:", err);
-        setError("Não foi possível carregar os professores.");
-      } finally {
-        setLoadingTeachers(false);
-      }
-    }
-
-    loadTeachers();
-  }, []);
-
-  // =========================================================
-  // Quando o professor muda
-  // =========================================================
-
-  useEffect(() => {
-    async function loadCourses() {
-      if (!teacherId) {
-        setCourses([]);
-        setModules([]);
-        setCourseId("");
-        setModuleId("");
+    async function loadCourse() {
+      if (!courseIdFromUrl) {
+        setError("Curso não informado.");
+        setLoading(false);
         return;
       }
 
       try {
-        setLoadingCourses(true);
+        setLoading(true);
         setError("");
 
-        const teacher = teachers.find(
-          (item) => item.id === Number(teacherId)
+        const response = await api.get<CourseReadDto>(
+          `/courses/${courseIdFromUrl}`
         );
 
-        if (!teacher) {
-          setCourses([]);
-          return;
-        }
-
-        setCourses(teacher.courses ?? []);
-
-        setCourseId("");
-        setModuleId("");
-        setModules([]);
+        setCourse(response.data);
       } catch (err) {
-        console.error("Erro ao carregar cursos:", err);
-        setError("Não foi possível carregar os cursos.");
+        console.error("Erro ao carregar curso:", err);
+        setError("Não foi possível carregar o curso.");
       } finally {
-        setLoadingCourses(false);
+        setLoading(false);
       }
     }
 
-    loadCourses();
-  }, [teacherId, teachers]);
-
-  // =========================================================
-  // Quando o curso muda
-  // =========================================================
+    loadCourse();
+  }, [courseIdFromUrl]);  
 
   useEffect(() => {
     async function loadModules() {
-      if (!courseId) {
+      if (!courseIdFromUrl) {
         setModules([]);
-        setModuleId("");
         return;
       }
 
       try {
-        setLoadingModules(true);
-        setError("");
-
-        const response = await api.get(
-          `/coursemodules/course/${courseId}`
+        const response = await api.get<CourseModuleReadDto[]>(
+          `/coursemodules/course/${courseIdFromUrl}`
         );
 
-        setModules(response.data);
-        setModuleId("");
+        const loadedModules = [...response.data].sort(
+          (a, b) => a.order - b.order
+        );
+
+        setModules(loadedModules);
+        
+        if (moduleIdFromUrl) {
+          const selectedModule = loadedModules.find(
+            (module) => module.id === Number(moduleIdFromUrl)
+          );
+
+          if (selectedModule) {
+            const nextLessonOrder =
+              selectedModule.lessons?.length > 0
+                ? Math.max(
+                    ...selectedModule.lessons.map(
+                      (lesson) => lesson.order
+                    )
+                  ) + 1
+                : 1;
+
+            setOrder(String(nextLessonOrder));
+          }
+        }
       } catch (err) {
         console.error("Erro ao carregar módulos:", err);
         setError("Não foi possível carregar os módulos.");
         setModules([]);
-      } finally {
-        setLoadingModules(false);
       }
     }
 
     loadModules();
-  }, [courseId]);
+  }, [courseIdFromUrl, moduleIdFromUrl]);
+
+  
+  const selectedModule = modules.find(
+    (module) => module.id === Number(moduleIdFromUrl)
+  );
+
+  const teacherName = course?.teacherName || "Não informado";
+
+  function validateForm(): string | null {
+    if (!courseIdFromUrl) {
+      return "Curso não informado.";
+    }
+
+    if (!moduleIdFromUrl) {
+      return "Módulo não informado.";
+    }
+
+    if (!course) {
+      return "Curso não carregado.";
+    }
+
+    if (!selectedModule) {
+      return "Módulo não encontrado.";
+    }
+
+    if (!title.trim()) {
+      return "Informe o título da aula.";
+    }
+
+    const duration = Number(durationSeconds);
+
+    if (!Number.isInteger(duration) || duration < 0) {
+      return "A duração deve ser um número inteiro maior ou igual a zero.";
+    }
+
+    const lessonOrder = Number(order);
+
+    if (!Number.isInteger(lessonOrder) || lessonOrder < 1) {
+      return "A ordem da aula deve ser um número inteiro maior que zero.";
+    }
+
+    if (material) {
+      const extension = material.name
+        .substring(material.name.lastIndexOf("."))
+        .toLowerCase();
+
+      const allowedExtensions = [".pdf", ".txt"];
+
+      if (!allowedExtensions.includes(extension)) {
+        return "Formato de arquivo não permitido. Envie apenas PDF ou TXT.";
+      }
+
+      const maxFileSize = 10 * 1024 * 1024;
+
+      if (material.size > maxFileSize) {
+        return "O arquivo não pode ultrapassar 10 MB.";
+      }
+    }
+
+    return null;
+  } 
+
+  async function handleCreateLesson() {
+    const validationError = validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    try {
+      setCreating(true);
+      setError("");
+
+      const formData = new FormData();
+
+      formData.append("Title", title.trim());
+
+      formData.append(
+        "Description",
+        description.trim()
+      );
+
+      formData.append(
+        "VideoUrl",
+        videoUrl.trim()
+      );
+
+      formData.append(
+        "DurationSeconds",
+        String(Number(durationSeconds))
+      );
+
+      formData.append(
+        "Order",
+        String(Number(order))
+      );
+
+      formData.append(
+        "IsPublished",
+        String(isPublished)
+      );
+
+      formData.append(
+        "CourseModuleId",
+        String(Number(moduleIdFromUrl))
+      );
+
+      if (material) {
+        formData.append("material", material);
+      }
+
+      await api.post("/lessons", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });     
+
+      router.push(
+        `/dashboard-coordinator/courses/${courseIdFromUrl}/details`
+      );
+    } catch (err) {
+      console.error("Erro ao criar aula:", err);
+
+      setError(
+        "Não foi possível criar a aula. Verifique os dados e tente novamente."
+      );
+    } finally {
+      setCreating(false);
+    }
+  }  
+
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-3xl p-4">
+        <p className="text-center mt-10">
+          Carregando informações da aula...
+        </p>
+      </div>
+    );
+  }  
 
   return (
     <div className="container mx-auto max-w-3xl p-4">
@@ -146,138 +269,277 @@ export default function CreateLessonPage() {
 
         <CardContent className="space-y-6">
 
+          {/* =====================================================
+              Erro
+          ===================================================== */}
+
           {error && (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {error}
             </div>
           )}
 
-          {/* Professor */}
+          {/* =====================================================
+              Contexto da aula
+          ===================================================== */}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Professor
-            </label>
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
 
-            <select
-              value={teacherId}
-              onChange={(event) =>
-                setTeacherId(event.target.value)
-              }
-              disabled={loadingTeachers}
-              className="w-full rounded-md border px-3 py-2"
-            >
-              <option value="">
-                {loadingTeachers
-                  ? "Carregando professores..."
-                  : "Selecione o professor"}
-              </option>
+            <div>
+              <Label className="text-muted-foreground">
+                Professor
+              </Label>
 
-              {teachers.map((teacher) => (
-                <option
-                  key={teacher.id}
-                  value={teacher.id}
-                >
-                  {teacher.userName}
-                </option>
-              ))}
-            </select>
+              <p className="font-medium mt-1">
+                {teacherName}
+              </p>
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground">
+                Curso
+              </Label>
+
+              <p className="font-medium mt-1">
+                {course?.title || "Não informado"}
+              </p>
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground">
+                Módulo
+              </Label>
+
+              <p className="font-medium mt-1">
+                {selectedModule
+                  ? `${selectedModule.order}. ${selectedModule.name}`
+                  : "Não informado"}
+              </p>
+            </div>
+
           </div>
 
-          {/* Curso */}
+          {/* =====================================================
+              Título
+          ===================================================== */}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Curso
-            </label>
+            <Label htmlFor="lesson-title">
+              Título da aula
+            </Label>
 
-            <select
-              value={courseId}
+            <Input
+              id="lesson-title"
+              value={title}
               onChange={(event) =>
-                setCourseId(event.target.value)
+                setTitle(event.target.value)
               }
-              disabled={!teacherId || loadingCourses}
-              className="w-full rounded-md border px-3 py-2"
-            >
-              <option value="">
-                {!teacherId
-                  ? "Selecione primeiro o professor"
-                  : loadingCourses
-                    ? "Carregando cursos..."
-                    : "Selecione o curso"}
-              </option>
-
-              {courses.map((course) => (
-                <option
-                  key={course.id}
-                  value={course.id}
-                >
-                  {course.title}
-                </option>
-              ))}
-            </select>
+              placeholder="Ex.: Introdução ao conteúdo"
+              maxLength={200}
+              disabled={creating}
+            />
           </div>
 
-          {/* Módulo */}
+          {/* =====================================================
+              Descrição
+          ===================================================== */}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Módulo
-            </label>
+            <Label htmlFor="lesson-description">
+              Descrição
+            </Label>
 
-            <select
-              value={moduleId}
+            <Textarea
+              id="lesson-description"
+              value={description}
               onChange={(event) =>
-                setModuleId(event.target.value)
+                setDescription(event.target.value)
               }
-              disabled={!courseId || loadingModules}
-              className="w-full rounded-md border px-3 py-2"
-            >
-              <option value="">
-                {!courseId
-                  ? "Selecione primeiro o curso"
-                  : loadingModules
-                    ? "Carregando módulos..."
-                    : "Selecione o módulo"}
-              </option>
-
-              {modules.map((module) => (
-                <option
-                  key={module.id}
-                  value={module.id}
-                >
-                  {module.order}. {module.name}
-                </option>
-              ))}
-            </select>
+              placeholder="Descrição da aula..."
+              rows={5}
+              disabled={creating}
+            />
           </div>
 
-          {/* Próxima etapa */}
+          {/* =====================================================
+              Vídeo
+          ===================================================== */}
+
+          <div className="space-y-2">
+            <Label htmlFor="lesson-video">
+              URL do vídeo
+            </Label>
+
+            <Input
+              id="lesson-video"
+              type="url"
+              value={videoUrl}
+              onChange={(event) =>
+                setVideoUrl(event.target.value)
+              }
+              placeholder="https://..."
+              disabled={creating}
+            />
+          </div>
+
+          {/* =====================================================
+              Material
+          ===================================================== */}
+
+          <div className="space-y-2">
+            <Label htmlFor="lesson-material">
+              Material da aula
+            </Label>
+
+            <Input
+              id="lesson-material"
+              type="file"
+              accept=".pdf,.txt"
+              disabled={creating}
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+
+                setMaterial(file);
+              }}
+            />
+
+            <p className="text-xs text-muted-foreground">
+              Formatos permitidos: PDF ou TXT. Tamanho máximo: 10 MB.
+            </p>
+
+            {material && (
+              <p className="text-sm text-muted-foreground">
+                Arquivo selecionado:{" "}
+                <strong>{material.name}</strong>
+              </p>
+            )}
+          </div>
+
+          {/* =====================================================
+              Duração
+          ===================================================== */}
+
+          <div className="space-y-2">
+            <Label htmlFor="lesson-duration">
+              Duração (segundos)
+            </Label>
+
+            <Input
+              id="lesson-duration"
+              type="number"
+              min={0}
+              value={durationSeconds}
+              onChange={(event) =>
+                setDurationSeconds(event.target.value)
+              }
+              disabled={creating}
+            />
+
+            <p className="text-xs text-muted-foreground">
+              Informe a duração total da aula em segundos.
+            </p>
+          </div>
+
+          {/* =====================================================
+              Ordem
+          ===================================================== */}
+
+          <div className="space-y-2">
+            <Label htmlFor="lesson-order">
+              Ordem da aula
+            </Label>
+
+            <Input
+              id="lesson-order"
+              type="number"
+              min={1}
+              value={order}
+              onChange={(event) =>
+                setOrder(event.target.value)
+              }
+              disabled={creating}
+            />
+
+            <p className="text-xs text-muted-foreground">
+              A ordem é sugerida automaticamente com base nas
+              aulas existentes no módulo.
+            </p>
+          </div>
+
+          {/* =====================================================
+              Publicação
+          ===================================================== */}
+
+          <div className="flex items-center gap-2">
+            <input
+              id="lesson-published"
+              type="checkbox"
+              checked={isPublished}
+              onChange={(event) =>
+                setIsPublished(event.target.checked)
+              }
+              disabled={creating}
+              className="h-4 w-4"
+            />
+
+            <Label
+              htmlFor="lesson-published"
+              className="cursor-pointer"
+            >
+              Publicar aula imediatamente
+            </Label>
+          </div>
+
+          {/* =====================================================
+              Informação
+          ===================================================== */}
 
           <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
-            Selecione o professor, curso e módulo para
-            continuar o cadastro da aula.
+            O professor, curso e módulo foram definidos
+            automaticamente a partir do curso selecionado.
           </div>
 
-          <div className="flex justify-end gap-3">
+          {/* =====================================================
+              Botões
+          ===================================================== */}
+
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
-                router.push(
-                  "/dashboard-coordinator/lessons"
-                )
-              }
+              onClick={() => {
+                if (courseIdFromUrl) {
+                  router.push(
+                    `/dashboard-coordinator/courses/${courseIdFromUrl}/details`
+                  );
+                } else {
+                  router.push(
+                    "/dashboard-coordinator/courses"
+                  );
+                }
+              }}
+              disabled={creating}
             >
               Cancelar
             </Button>
 
             <Button
               type="button"
-              disabled={!moduleId}
+              onClick={handleCreateLesson}
+              disabled={
+                creating ||
+                !course ||
+                !selectedModule ||
+                !title.trim()
+              }
+              className="bg-[#163E72] hover:bg-[#255690]"
             >
-              Continuar
+              {creating
+                ? "Criando aula..."
+                : "Criar aula"}
             </Button>
+
           </div>
 
         </CardContent>

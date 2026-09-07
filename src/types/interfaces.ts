@@ -29,6 +29,7 @@ export interface CourseModuleReadDto {
   description?: string;
   order: number;
   lessons: LessonReadDto[];
+  courseId: number;
 }
 
 export interface LessonReadDto {
