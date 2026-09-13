@@ -193,7 +193,7 @@ export interface FinanceProps {
 }
 
 export interface RegisterFormProps {
-  courseId?: string;
+  courseId?: number;
 }
 
 export interface DashboardFinanceProps {
