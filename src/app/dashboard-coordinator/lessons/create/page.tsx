@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import CreateLessonPage from "../../../components/dashboardCoordinator/lessons/CreateLessonsPage";
+import CreateLessonPage from "../../../components/dashboardCoordinator/lessons/CreateLessonPage";
 
 export default function Page() {
   return (

@@ -207,3 +207,21 @@ export interface DashboardFinanceProps {
   statusFilter?: string;
   studentFilter?: string;
 }
+
+export interface EnrollmentReportDto {
+  total: number;
+  pending: number;
+  active: number;
+  completed: number;
+  cancelled: number;
+}
+
+export interface CoordinatorReportsDto {
+  coursesCount: number;
+  teachersCount: number;
+  studentsCount: number;
+  lessonsCount: number;
+  avgProgress: number;
+  enrollments: EnrollmentReportDto;
+  courses: CourseSummaryDto[];
+}
