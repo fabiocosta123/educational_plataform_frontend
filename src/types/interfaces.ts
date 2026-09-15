@@ -224,4 +224,5 @@ export interface CoordinatorReportsDto {
   avgProgress: number;
   enrollments: EnrollmentReportDto;
   courses: CourseSummaryDto[];
+  financial: FinanceSummary;
 }
