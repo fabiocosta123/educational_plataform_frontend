@@ -234,20 +234,24 @@ export default function ModulesPage() {
   ) => {
     event.preventDefault();
 
+    const missing: string[] = [];
+
     if (!lessonTitle.trim()) {
-      toast.error("Informe o título da aula.");
-      return;
+      missing.push("Título da aula");
     }
 
     if (!lessonVideoUrl.trim()) {
-      toast.error("Informe o link da videoaula.");
-      return;
+      missing.push("URL do vídeo");
     }
 
     const durationMinutes = Number(lessonDuration);
 
     if (!lessonDuration || durationMinutes <= 0) {
-      toast.error("Informe uma duração válida.");
+      missing.push("Duração do vídeo");
+    }
+
+    if (missing.length > 0) {
+      toast.error(`Preencha os campos obrigatórios: ${missing.join(", ")}.`);
       return;
     }
 

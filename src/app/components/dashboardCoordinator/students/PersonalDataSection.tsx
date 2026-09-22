@@ -20,6 +20,9 @@ interface Props {
   birthDate: string;
   setBirthDate: (value: string) => void;
 
+  password: string;
+  setPassword: (value: string) => void;
+
   isEditing: boolean;
 }
 
@@ -34,6 +37,8 @@ export default function PersonalDataSection({
   setPhoneNumber,
   birthDate,
   setBirthDate,
+  password,
+  setPassword,
   isEditing,
 }: Props) {
   return (
@@ -79,6 +84,19 @@ export default function PersonalDataSection({
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
           placeholder="(11) 99999-9999"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>{isEditing ? "Nova senha (opcional)" : "Senha de acesso"}</Label>
+
+        <Input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={isEditing ? "Deixe em branco para manter" : "Mínimo 6 caracteres"}
+          required={!isEditing}
+          minLength={isEditing ? undefined : 6}
         />
       </div>
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../services/api";
+import { isValidCpf, formatCpf } from "@/utils/cpf";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,12 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (cpf && !isValidCpf(cpf)) {
+      toast.error("Informe um CPF válido.");
+      return;
+    }
+
     try {
       const payload = {
         UserName: userName,
@@ -49,13 +56,6 @@ export default function TeacherForm({ onSave }: TeacherFormProps) {
       toast.error(message);
     }
   };
-
-  function formatCpf(value: string) {
-    return value.replace(/\D/g, "").slice(0, 11)
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-  }
 
   function formatPhone(value: string) {
     return value.replace(/\D/g, "").slice(0, 11)

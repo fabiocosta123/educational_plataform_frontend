@@ -16,11 +16,47 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 import type {
   CourseReadDto,
   CourseModuleReadDto,
 } from "@/types/interfaces";
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const data = error.response?.data;
+
+  if (typeof data === "string" && data.trim()) {
+    return data;
+  }
+
+  if (data && typeof data === "object") {
+    if (typeof data.message === "string" && data.message.trim()) {
+      return data.message;
+    }
+
+    if (data.errors && typeof data.errors === "object") {
+      const messages = Object.values(data.errors as Record<string, unknown>)
+        .flat()
+        .filter((item): item is string => typeof item === "string");
+
+      if (messages.length > 0) {
+        return messages.join(" ");
+      }
+    }
+
+    if (typeof data.title === "string" && data.title.trim()) {
+      return data.title;
+    }
+  }
+
+  return fallback;
+}
 
 export default function CreateLessonPage() {
   const router = useRouter();
@@ -36,7 +72,7 @@ export default function CreateLessonPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [durationSeconds, setDurationSeconds] = useState("0");
+  const [durationMinutes, setDurationMinutes] = useState("");
   const [order, setOrder] = useState("1");
   const [isPublished, setIsPublished] = useState(true);
   const [material, setMaterial] = useState<File | null>(null);  
@@ -126,6 +162,32 @@ export default function CreateLessonPage() {
 
   const teacherName = course?.teacherName || "Não informado";
 
+  function getMissingRequiredFields(): string[] {
+    const missing: string[] = [];
+
+    if (!title.trim()) {
+      missing.push("Título da aula");
+    }
+
+    if (!videoUrl.trim()) {
+      missing.push("URL do vídeo");
+    }
+
+    const duration = Number(durationMinutes);
+
+    if (!Number.isInteger(duration) || duration < 1) {
+      missing.push("Duração do vídeo (em minutos, maior que zero)");
+    }
+
+    const lessonOrder = Number(order);
+
+    if (!Number.isInteger(lessonOrder) || lessonOrder < 1) {
+      missing.push("Ordem da aula");
+    }
+
+    return missing;
+  }
+
   function validateForm(): string | null {
     if (!courseIdFromUrl) {
       return "Curso não informado.";
@@ -143,20 +205,10 @@ export default function CreateLessonPage() {
       return "Módulo não encontrado.";
     }
 
-    if (!title.trim()) {
-      return "Informe o título da aula.";
-    }
+    const missingFields = getMissingRequiredFields();
 
-    const duration = Number(durationSeconds);
-
-    if (!Number.isInteger(duration) || duration < 0) {
-      return "A duração deve ser um número inteiro maior ou igual a zero.";
-    }
-
-    const lessonOrder = Number(order);
-
-    if (!Number.isInteger(lessonOrder) || lessonOrder < 1) {
-      return "A ordem da aula deve ser um número inteiro maior que zero.";
+    if (missingFields.length > 0) {
+      return `Preencha os campos obrigatórios: ${missingFields.join(", ")}.`;
     }
 
     if (material) {
@@ -185,6 +237,7 @@ export default function CreateLessonPage() {
 
     if (validationError) {
       setError(validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -208,7 +261,7 @@ export default function CreateLessonPage() {
 
       formData.append(
         "DurationSeconds",
-        String(Number(durationSeconds))
+        String(Number(durationMinutes) * 60)
       );
 
       formData.append(
@@ -242,9 +295,13 @@ export default function CreateLessonPage() {
     } catch (err) {
       console.error("Erro ao criar aula:", err);
 
-      setError(
+      const message = getApiErrorMessage(
+        err,
         "Não foi possível criar a aula. Verifique os dados e tente novamente."
       );
+
+      setError(message);
+      toast.error(message);
     } finally {
       setCreating(false);
     }
@@ -325,7 +382,7 @@ export default function CreateLessonPage() {
 
           <div className="space-y-2">
             <Label htmlFor="lesson-title">
-              Título da aula
+              Título da aula *
             </Label>
 
             <Input
@@ -367,12 +424,11 @@ export default function CreateLessonPage() {
 
           <div className="space-y-2">
             <Label htmlFor="lesson-video">
-              URL do vídeo
+              URL do vídeo *
             </Label>
 
             <Input
               id="lesson-video"
-              type="url"
               value={videoUrl}
               onChange={(event) =>
                 setVideoUrl(event.target.value)
@@ -421,22 +477,22 @@ export default function CreateLessonPage() {
 
           <div className="space-y-2">
             <Label htmlFor="lesson-duration">
-              Duração (segundos)
+              Duração (minutos) *
             </Label>
 
             <Input
               id="lesson-duration"
               type="number"
-              min={0}
-              value={durationSeconds}
+              min={1}
+              value={durationMinutes}
               onChange={(event) =>
-                setDurationSeconds(event.target.value)
+                setDurationMinutes(event.target.value)
               }
               disabled={creating}
             />
 
             <p className="text-xs text-muted-foreground">
-              Informe a duração total da aula em segundos.
+              Informe a duração total da aula em minutos. Campo obrigatório, maior que zero.
             </p>
           </div>
 
@@ -527,12 +583,7 @@ export default function CreateLessonPage() {
             <Button
               type="button"
               onClick={handleCreateLesson}
-              disabled={
-                creating ||
-                !course ||
-                !selectedModule ||
-                !title.trim()
-              }
+              disabled={creating || !course || !selectedModule}
               className="bg-[#163E72] hover:bg-[#255690]"
             >
               {creating

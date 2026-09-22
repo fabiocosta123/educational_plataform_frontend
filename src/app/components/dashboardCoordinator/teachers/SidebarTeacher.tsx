@@ -31,6 +31,7 @@ export default function DashboardSidebarTeacher() {
             <Link href="/dashboard-teacher/modules" className="hover:bg-[#255690] p-2 rounded">Gerenciar Módulos</Link>
             <Link href="/dashboard-teacher/add-lesson" className="hover:bg-[#255690] p-2 rounded">Adicionar Aula</Link>
             <Link href="/dashboard-teacher/materials" className="hover:bg-[#255690] p-2 rounded">Materiais</Link>
+            <Link href="/dashboard-teacher/forum" className="hover:bg-[#255690] p-2 rounded">Fórum</Link>
           </nav>
         </div>
 

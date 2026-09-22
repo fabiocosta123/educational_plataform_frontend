@@ -36,6 +36,41 @@ import {
 } from "lucide-react";
 
 import { toast } from "sonner";
+import axios from "axios";
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const data = error.response?.data;
+
+  if (typeof data === "string" && data.trim()) {
+    return data;
+  }
+
+  if (data && typeof data === "object") {
+    if (typeof data.message === "string" && data.message.trim()) {
+      return data.message;
+    }
+
+    if (data.errors && typeof data.errors === "object") {
+      const messages = Object.values(data.errors as Record<string, unknown>)
+        .flat()
+        .filter((item): item is string => typeof item === "string");
+
+      if (messages.length > 0) {
+        return messages.join(" ");
+      }
+    }
+
+    if (typeof data.title === "string" && data.title.trim()) {
+      return data.title;
+    }
+  }
+
+  return fallback;
+}
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
@@ -151,7 +186,7 @@ export default function CourseDetailsPage() {
 
       await api.post("/coursemodules", {
         name: moduleName.trim(),
-        description: moduleDescription.trim() || null,
+        description: moduleDescription.trim() || undefined,
         courseId: Number(id),
         order,
         isPublished: modulePublished,
@@ -166,7 +201,7 @@ export default function CourseDetailsPage() {
       console.error("Erro ao criar módulo:", error);
 
       toast.error(
-        "Não foi possível criar o módulo."
+        getApiErrorMessage(error, "Não foi possível criar o módulo.")
       );
     } finally {
       setCreatingModule(false);
@@ -298,16 +333,27 @@ export default function CourseDetailsPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#163E72]">
-          {course.title}
-        </h1>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-[#163E72]">
+            {course.title}
+          </h1>
 
-        {course.description && (
-          <p className="text-gray-700 mt-1">
-            {course.description}
-          </p>
-        )}
+          {course.description && (
+            <p className="text-gray-700 mt-1">
+              {course.description}
+            </p>
+          )}
+        </div>
+        <Button
+          type="button"
+          className="bg-[#163E72] hover:bg-[#255690]"
+          onClick={() =>
+            router.push(`/dashboard-coordinator/courses/${course.id}/forum`)
+          }
+        >
+          Fórum do curso
+        </Button>
       </div>     
 
       <Card>
