@@ -1,0 +1,7 @@
+"use client";
+
+import CourseEditPage from "../../../../components/dashboardCoordinator/course/CourseEditPage";
+
+export default function CourseEditRoute({ params, }: { params: Promise<{ id: string }> }) {
+  return <CourseEditPage />;
+}

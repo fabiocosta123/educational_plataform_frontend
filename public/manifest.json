@@ -1,13 +1,14 @@
 {
   "id": "/",
-  "name": "Educational Platform",
-  "short_name": "EduPlatform",
-  "description": "Plataforma educacional responsiva com Next.js e Tailwind",
+  "name": "Anexa",
+  "short_name": "Anexa",
+  "description": "Plataforma educacional para cursos online",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone","window-controls-overlay"],
+  "display_override": ["standalone", "window-controls-overlay"],
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#163E72",
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -15,7 +16,7 @@
       "type": "image/png",
       "purpose": "any"
     },
-     {
+    {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
@@ -25,32 +26,13 @@
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any" 
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable" 
+      "purpose": "maskable"
     }
-  ],
-  "screenshots": [
-  {
-    "src": "/screenshots/desktop.png",
-    "sizes": "1280x720",
-    "type": "image/png",
-    "form_factor": "wide"
-  },
-  {
-    "src": "/screenshots/mobile.png",
-    "sizes": "720x1280",
-    "type": "image/png"
-  }
-],
-"protocol_handlers": [
-  {
-    "protocol": "web+edu",
-    "url": "/?q=%s"
-  }
-]
+  ]
 }

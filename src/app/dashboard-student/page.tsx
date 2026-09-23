@@ -1,0 +1,171 @@
+"use client";
+
+
+import { useEffect, useState } from "react";
+import { Enrollment } from "../../types/interfaces";
+import { toast } from "react-toastify";
+import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/navigation";
+import api from "../services/api";
+
+export default function StudentDashboard() {
+  const { user, loading } = useAuth();
+  const [progress, setProgress] = useState(0);
+  const [completedCourses, setCompletedCourses] = useState(0);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState(0);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+
+  const today = new Date().toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchEnrollments = async () => {
+      try {
+        const response = await api.get<Enrollment[]>("/CoursesEnrollment");
+
+        const data = response.data;
+        setEnrollments(data);
+
+        setTotalCourses(data.length);
+        setCompletedCourses(data.filter(e => e.status === "Concluido").length);
+
+        setProgress(
+          Math.round(
+            data.reduce((acc, e) => acc + (e.progressPercentage || 0), 0) /
+            (data.length || 1)
+          )
+        );
+
+        setCompletedLessons(
+          data.reduce((acc, e) => acc + (e.completedLessons || 0), 0)
+        );
+        setTotalLessons(
+          data.reduce((acc, e) => acc + (e.totalLessons || 0), 0)
+        );
+
+        toast.success("Cursos carregados com sucesso!");
+      } catch {
+        toast.error("Erro ao carregar cursos matriculados");
+      }
+    };
+
+    fetchEnrollments();
+  }, [user?.id, loading, router]);
+
+  if (loading || !user) {
+    return null;
+  }
+
+  return (
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
+     
+
+      {/* Conteúdo principal */}
+      <main className="flex-1 p-8">
+        {/* Header com nome e avatar */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-[#163E72]">Olá, {user.name}</h1>
+            <p className="text-gray-600">{today}</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-[#338B97] text-white flex items-center justify-center text-lg font-bold">
+              {user.name.split(" ").map(n => n[0]).join("")}
+            </div>
+          </div>
+        </div>
+
+        {/* Progresso geral */}
+        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+          <h2 className="font-semibold text-[#163E72] mb-4">Meu Progresso Geral</h2>
+          <div className="flex items-center gap-8">
+            {/* Gráfico circular */}
+            <div className="relative w-24 h-24">
+              <svg className="w-24 h-24">
+                <circle
+                  className="text-gray-300"
+                  strokeWidth="8"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="40"
+                  cx="48"
+                  cy="48"
+                />
+                <circle
+                  className="text-[#338B97]"
+                  strokeWidth="8"
+                  strokeDasharray={2 * Math.PI * 40}
+                  strokeDashoffset={2 * Math.PI * 40 * (1 - progress / 100)}
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="40"
+                  cx="48"
+                  cy="48"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-[#163E72]">
+                {progress}%
+              </span>
+            </div>
+
+            {/* Dados de progresso */}
+            <div>
+              <p className="text-gray-700">Cursos Concluídos: {completedCourses}/{totalCourses}</p>
+              <p className="text-gray-700">Total de Aulas: {completedLessons}/{totalLessons}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cursos matriculados */}
+        <h2 className="text-xl font-bold text-[#163E72] mb-4">Meus Cursos Matriculados</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {enrollments.map((course) => (
+            <div key={course.id} className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-bold text-[#163E72] mb-2">{course.courseTitle}</h3>
+              <p className="text-gray-600 mb-2">Status: {course.status}</p>
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                <div
+                  className="h-3 rounded-full bg-green-500"
+                  style={{ width: `${course.progressPercentage || 0}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">{course.progressPercentage || 0}% concluído</p>
+              <div className="flex flex-col gap-2">
+                <button
+                  className="bg-[#338B97] text-white px-4 py-2 rounded-lg hover:bg-[#255690] transition"
+                  onClick={() => toast.info(`Continuando curso: ${course.courseTitle}`)}
+                >
+                  Continuar
+                </button>
+                <button
+                  className="border border-[#338B97] text-[#338B97] px-4 py-2 rounded-lg hover:bg-[#338B97]/10 transition"
+                  onClick={() => router.push(`/dashboard-student/courses/${course.courseId}/forum`)}
+                >
+                  Fórum
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
