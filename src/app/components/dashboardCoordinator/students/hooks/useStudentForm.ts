@@ -31,6 +31,7 @@ const [userEmail, setUserEmail] = useState("");
 const [birthDate, setBirthDate] = useState("");
 const [cpf, setCpf] = useState("");
 const [phoneNumber, setPhoneNumber] = useState("");
+const [password, setPassword] = useState("");
 
 
 // Matrícula
@@ -121,6 +122,7 @@ function clearForm() {
 
     setCourseId(0);
     setStatus("Ativo");
+    setPassword("");
 }
 
 return {
@@ -139,6 +141,9 @@ return {
 
     phoneNumber,
     setPhoneNumber,
+
+    password,
+    setPassword,
 
     // Matrícula
     courseId,

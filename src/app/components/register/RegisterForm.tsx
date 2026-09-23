@@ -6,12 +6,42 @@ import axios from "axios";
 import { toast } from "sonner";
 import Link from "next/link";
 import Cleave from "cleave.js/react";
-import { useRouter } from "next/navigation";
 import { RegisterFormProps } from "@/types/interfaces";
+import { isValidCpf } from "@/utils/cpf";
+
+function getRegisterErrorMessage(error: unknown, fallback: string) {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const data = error.response?.data;
+
+  if (typeof data === "string" && data.trim()) {
+    return data;
+  }
+
+  if (data && typeof data === "object") {
+    const payload = data as Record<string, unknown>;
+
+    if (typeof payload.message === "string" && payload.message.trim()) {
+      return payload.message;
+    }
+
+    if (payload.errors && typeof payload.errors === "object") {
+      const messages = Object.values(payload.errors as Record<string, unknown>)
+        .flat()
+        .filter((item): item is string => typeof item === "string");
+
+      if (messages.length > 0) {
+        return messages.join(" ");
+      }
+    }
+  }
+
+  return fallback;
+}
 
 export default function RegisterForm({ courseId }: RegisterFormProps) {
-  const router = useRouter();
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
@@ -33,9 +63,11 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
   const isEmailValid =
     email.length > 0 && /\S+@\S+\.\S+/.test(email);
 
+  const cpfIsValid = isValidCpf(cpf);
+
   const isFormValid =
     name.trim().length >= 3 &&
-    cpf.length === 14 &&
+    cpfIsValid &&
     phoneNumber.length > 0 &&
     birthDate.length > 0 &&
     isEmailValid &&
@@ -44,6 +76,11 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!cpfIsValid) {
+      toast.error("Informe um CPF válido.");
+      return;
+    }
 
     if (!isFormValid) {
       toast.error("Preencha todos os campos corretamente.");
@@ -72,28 +109,15 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
       );
 
       setRegistered(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao registrar aluno:", err);
 
-      if (err.response?.status === 409) {
-        toast.error(
-          err.response?.data?.message ??
-            "Os dados informados já estão cadastrados."
-        );
-      } else if (err.response?.status === 400) {
-        toast.error(
-          "Verifique os dados preenchidos no formulário."
-        );
-      } else if (err.response?.status === 404) {
-        toast.error(
-          "O curso selecionado não foi encontrado."
-        );
-      } else {
-        toast.error(
-          err.response?.data?.message ??
-            "Erro ao realizar cadastro."
-        );
-      }
+      toast.error(
+        getRegisterErrorMessage(
+          err,
+          "Não foi possível realizar o cadastro."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -182,12 +206,17 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
           className={`w-full rounded-lg border p-3 outline-none ${
             cpf.length === 0
               ? ""
-              : cpf.length === 14
+              : cpfIsValid
                 ? "border-green-500"
                 : "border-red-500"
           }`}
           required
         />
+        {cpf.length > 0 && !cpfIsValid && (
+          <p className="mt-1 text-xs text-red-500">
+            Informe um CPF válido.
+          </p>
+        )}
       </div>
 
       {/* Data de nascimento */}

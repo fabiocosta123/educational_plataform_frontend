@@ -1,15 +1,15 @@
 import SidebarCoordinator from "../components/dashboardCoordinator/SidebarCoordinator";
 
-export default function DashboardCoordinatorLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardCoordinatorLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Sidebar fixa */}
-      <aside className="fixed md:static top-0 left-0 h-screen w-64 z-50">
-        <SidebarCoordinator />
-      </aside>
+    <div className="flex min-h-screen bg-gray-50">
+      <SidebarCoordinator />
 
-      {/* Conteúdo rolável */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <main className="flex-1 overflow-y-auto p-4 pt-16 sm:p-6 md:ml-64 md:pt-6">
         {children}
       </main>
     </div>

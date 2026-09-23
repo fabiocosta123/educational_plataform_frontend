@@ -54,7 +54,7 @@ export default function LoginForm() {
       const profile = parseInt(decoded.profile);
 
       if (profile == 1) {
-        router.push("/dashboard");
+        router.push("/dashboard-student");
       }
       else if (profile == 2) {
         router.push("/dashboard-teacher");
@@ -64,7 +64,13 @@ export default function LoginForm() {
       }
 
     } catch (err: any) {
-      toast.error(err.message || "Erro ao fazer login");
+      const data = err.response?.data;
+      const message =
+        (typeof data === "string" && data) ||
+        data?.message ||
+        data?.title ||
+        "Erro ao fazer login";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

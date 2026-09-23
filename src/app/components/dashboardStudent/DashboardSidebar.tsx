@@ -1,44 +1,83 @@
 "use client";
+
 import Link from "next/link";
-import LogoutButton from "../logoutButton/LogoutButton";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
+
+import LogoutButton from "../logoutButton/LogoutButton";
+
+const NAV_ITEMS = [
+  { href: "/dashboard-student", label: "Início" },
+  { href: "/dashboard/my-courses", label: "Meu Aprendizado" },
+  { href: "/dashboard/courses", label: "Cursos disponíveis" },
+  { href: "/dashboard/activities", label: "Atividades" },
+  { href: "/dashboard/calendar", label: "Calendário" },
+  { href: "/dashboard/report", label: "Boletim" },
+  { href: "/dashboard/finance", label: "Financeiro" },
+  { href: "/dashboard/certificates", label: "Certificados" },
+  { href: "/dashboard-student/forum", label: "Fórum" },
+];
 
 export default function DashboardSidebar() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   return (
     <>
-      {/* Botão de menu visível apenas em telas pequenas */}
-      <div className="md:hidden flex items-center justify-between bg-[#163E72] text-white p-4">
-        <h2 className="text-lg font-bold">Portal do Aluno</h2>
-        <button onClick={() => setOpen(!open)} className="text-2xl">
-          {open ? <FiX /> : <FiMenu />}
-        </button>
-      </div>
-
-      {/* Sidebar fixa em telas médias+ ou drawer em mobile */}
-      <aside
-        className={`fixed md:static top-0 left-0 h-screen w-64 bg-[#163E72] text-white flex flex-col p-6 transform transition-transform duration-300 ease-in-out 
-        ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+      <button
+        type="button"
+        aria-label={open ? "Fechar menu" : "Abrir menu"}
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="fixed top-3 left-3 z-[70] flex h-11 w-11 items-center justify-center rounded-lg bg-[#163E72] text-white shadow-md md:hidden"
       >
-        <div className="flex flex-col gap-4">
-          <h2 className="text-2xl font-bold mb-8 hidden md:block">Portal do Aluno</h2>
+        {open ? <FiX className="text-2xl" /> : <FiMenu className="text-2xl" />}
+      </button>
 
-          <nav className="flex flex-col gap-4">
-            <Link href="/dashboard" className="hover:bg-[#255690] p-2 rounded">Início</Link>
-            <Link href="/dashboard/my-courses" className="hover:bg-[#255690] p-2 rounded">Meu Aprendizado</Link>
-            <Link href="/dashboard/courses" className="hover:bg-[#255690] p-2 rounded">Cursos disponíveis</Link>
-            <Link href="/dashboard/activities" className="hover:bg-[#255690] p-2 rounded">Atividades</Link>
-            <Link href="/dashboard/calendar" className="hover:bg-[#255690] p-2 rounded">Calendário</Link>
-            <Link href="/dashboard/report" className="hover:bg-[#255690] p-2 rounded">Boletim</Link>
-            <Link href="/dashboard/finance" className="hover:bg-[#255690] p-2 rounded">Financeiro</Link>
-            <Link href="/dashboard/certificates" className="hover:bg-[#255690] p-2 rounded">Certificados</Link>
-            <Link href="/dashboard/forum" className="hover:bg-[#255690] p-2 rounded">Fórum</Link>
-          </nav>
-        </div>
+      {open && (
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          className="fixed inset-0 z-[50] bg-black/40 md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-        {/* Botão fixo no rodapé */}
+      <aside
+        className={`fixed top-0 left-0 z-[60] flex h-screen w-64 flex-col bg-[#163E72] p-6 text-white transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <h2 className="mb-8 mt-10 text-2xl font-bold md:mt-0">
+          Portal do Aluno
+        </h2>
+
+        <nav className="flex flex-col gap-4">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className="rounded p-2 hover:bg-[#255690]"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
         <div className="mt-auto">
           <LogoutButton />
         </div>

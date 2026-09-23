@@ -1,40 +1,78 @@
 "use client";
 import Link from "next/link";
-import LogoutButton from "../../logoutButton/LogoutButton";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
+import LogoutButton from "../../logoutButton/LogoutButton";
+
+const NAV_ITEMS = [
+  { href: "/dashboard-teacher", label: "Início" },
+  { href: "/dashboard-teacher/my-courses", label: "Cursos em andamento" },
+  { href: "/dashboard-teacher/modules", label: "Gerenciar Módulos" },
+  { href: "/dashboard-teacher/add-lesson", label: "Adicionar Aula" },
+  { href: "/dashboard-teacher/materials", label: "Materiais" },
+  { href: "/dashboard-teacher/forum", label: "Fórum" },
+];
 
 export default function DashboardSidebarTeacher() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   return (
     <>
-      {/* Navbar superior com botão hamburger (mobile) */}
-      <div className="md:hidden flex items-center justify-between bg-[#163E72] text-white p-4">
-        <h2 className="text-lg font-bold">Portal do Professor</h2>
-        <button onClick={() => setOpen(!open)} className="text-2xl">
-          {open ? <FiX /> : <FiMenu />}
-        </button>
-      </div>
-
-      {/* Sidebar responsivo */}
-      <aside
-        className={`fixed md:static top-0 left-0 h-screen w-64 bg-[#163E72] text-white flex flex-col p-6 transform transition-transform duration-300 ease-in-out 
-        ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+      <button
+        type="button"
+        aria-label={open ? "Fechar menu" : "Abrir menu"}
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="fixed top-3 left-3 z-[70] flex h-11 w-11 items-center justify-center rounded-lg bg-[#163E72] text-white shadow-md md:hidden"
       >
-        <div className="flex flex-col gap-4">
-          <h2 className="text-2xl font-bold mb-8 hidden md:block">Portal do Professor</h2>
+        {open ? <FiX className="text-2xl" /> : <FiMenu className="text-2xl" />}
+      </button>
 
-          <nav className="flex flex-col gap-4">
-            <Link href="/dashboard-teacher" className="hover:bg-[#255690] p-2 rounded">Início</Link>
-            <Link href="/dashboard-teacher/my-courses" className="hover:bg-[#255690] p-2 rounded">Cursos em andamento</Link>
-            <Link href="/dashboard-teacher/modules" className="hover:bg-[#255690] p-2 rounded">Gerenciar Módulos</Link>
-            <Link href="/dashboard-teacher/add-lesson" className="hover:bg-[#255690] p-2 rounded">Adicionar Aula</Link>
-            <Link href="/dashboard-teacher/materials" className="hover:bg-[#255690] p-2 rounded">Materiais</Link>
-          </nav>
-        </div>
+      {open && (
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          className="fixed inset-0 z-[50] bg-black/40 md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-        {/* Botão fixo no rodapé */}
+      <aside
+        className={`fixed top-0 left-0 z-[60] flex h-screen w-64 flex-col bg-[#163E72] p-6 text-white transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <h2 className="mb-8 mt-10 text-2xl font-bold md:mt-0">
+          Portal do Professor
+        </h2>
+
+        <nav className="flex flex-col gap-4">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className="rounded p-2 hover:bg-[#255690]"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
         <div className="mt-auto">
           <LogoutButton />
         </div>

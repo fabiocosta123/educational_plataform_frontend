@@ -45,9 +45,7 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const res = await api.get<Teacher[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/teachers`
-        );
+        const res = await api.get<Teacher[]>("/teachers");
         setTeachers(res.data);
       } catch {
         toast.error("Erro ao carregar professores");
@@ -59,10 +57,15 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!teacherId) {
+      toast.error("Selecione um professor.");
+      return;
+    }
+
     try {
       if (initialData) {
         const response = await api.put(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${initialData.id}`,
+          `/courses/${initialData.id}`,
           { id: initialData.id, title, description, teacherId: Number(teacherId) }
         );
         onSave(response.data);
@@ -70,7 +73,7 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
       } else {
         const payload = { title, description, teacherId: Number(teacherId) };
         const response = await api.post<CourseReadDto>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/courses`,
+          "/courses",
           payload
         );
         onSave(response.data);
@@ -80,8 +83,24 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
       setTitle("");
       setDescription("");
       setTeacherId("");
-    } catch {
-      toast.error("Erro ao salvar curso");
+    } catch (error: unknown) {
+      const data = (error as { response?: { data?: unknown } }).response?.data;
+      let message = "Erro ao salvar curso";
+
+      if (typeof data === "string" && data.trim()) {
+        message = data;
+      } else if (data && typeof data === "object") {
+        const payload = data as { message?: string; title?: string; errors?: Record<string, unknown> };
+        if (payload.message) {
+          message = payload.message;
+        } else if (payload.errors) {
+          message = Object.values(payload.errors).flat().join(" ");
+        } else if (payload.title) {
+          message = payload.title;
+        }
+      }
+
+      toast.error(message);
     }
   };
 

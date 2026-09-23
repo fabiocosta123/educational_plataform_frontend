@@ -105,7 +105,20 @@ export default function TeacherDetailsPage() {
           <p className="text-sm text-gray-500">
             Professor
           </p>
+
+          {teacher.userEmail && (
+            <p className="text-sm text-gray-600">{teacher.userEmail}</p>
+          )}
         </div>
+
+        <Button
+          className="bg-[#163E72]"
+          onClick={() =>
+            router.push(`/dashboard-coordinator/teachers/${teacher.id}/edit`)
+          }
+        >
+          Editar dados
+        </Button>
 
       </div>
 

@@ -75,9 +75,15 @@ export default function TeachersPage() {
                   </ul>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="gap-2">
                 <Button variant="ghost" onClick={() => router.push(`/dashboard-coordinator/teachers/${teacher.id}/details`)}>
                   Detalhes
+                </Button>
+                <Button
+                  className="bg-[#163E72]"
+                  onClick={() => router.push(`/dashboard-coordinator/teachers/${teacher.id}/edit`)}
+                >
+                  Editar
                 </Button>
               </CardFooter>
             </Card>

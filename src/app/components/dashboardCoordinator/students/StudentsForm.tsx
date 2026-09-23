@@ -19,6 +19,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { isValidCpf } from "@/utils/cpf";
 
 interface StudentFormProps {
   student?: StudentDto;
@@ -47,6 +48,9 @@ export default function StudentForm({
 
     phoneNumber,
     setPhoneNumber,
+
+    password,
+    setPassword,
 
     courseId,
     setCourseId,
@@ -81,6 +85,7 @@ export default function StudentForm({
           newCourseId: courseId,
 
           status,
+          ...(password.trim() ? { password: password.trim() } : {}),
         };
 
         console.log("PUT /users payload:", payload);
@@ -90,6 +95,16 @@ export default function StudentForm({
           payload
         );
       } else {
+        if (password.trim().length < 6) {
+          toast.error("Informe uma senha com no mínimo 6 caracteres.");
+          return;
+        }
+
+        if (!isValidCpf(cpf)) {
+          toast.error("Informe um CPF válido.");
+          return;
+        }
+
         const payload = {
           userName,
           userEmail,
@@ -98,6 +113,7 @@ export default function StudentForm({
           birthDate: new Date(birthDate).toISOString(),
           courseId,
           status,
+          password: password.trim(),
         };
 
         console.log("POST /users/students payload:", payload);
@@ -156,6 +172,8 @@ export default function StudentForm({
             setPhoneNumber={setPhoneNumber}
             birthDate={birthDate}
             setBirthDate={setBirthDate}
+            password={password}
+            setPassword={setPassword}
             isEditing={!!student}
           />
 

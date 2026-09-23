@@ -207,3 +207,72 @@ export interface DashboardFinanceProps {
   statusFilter?: string;
   studentFilter?: string;
 }
+
+export interface EnrollmentReportDto {
+  total: number;
+  pending: number;
+  active: number;
+  completed: number;
+  cancelled: number;
+}
+
+export interface CoordinatorReportsDto {
+  coursesCount: number;
+  teachersCount: number;
+  studentsCount: number;
+  lessonsCount: number;
+  avgProgress: number;
+  enrollments: EnrollmentReportDto;
+  courses: CourseSummaryDto[];
+  financial: FinanceSummary;
+}
+
+export interface ForumQuestionListDto {
+  id: number;
+  title: string;
+  createdAt: string;
+  isResolved: boolean;
+  replyCount: number;
+  courseId: number;
+  lessonId?: number | null;
+  lessonTitle?: string | null;
+  userId: number;
+  userName: string;
+}
+
+export interface ForumReplyReadDto {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt?: string | null;
+  userId: number;
+  userName: string;
+  userProfile: string;
+}
+
+export interface ForumQuestionReadDto {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt?: string | null;
+  isResolved: boolean;
+  userId: number;
+  userName: string;
+  courseId: number;
+  courseTitle: string;
+  lessonId?: number | null;
+  lessonTitle?: string | null;
+  replies: ForumReplyReadDto[];
+}
+
+export interface ForumQuestionCreateDto {
+  title: string;
+  content: string;
+  courseId: number;
+  lessonId?: number | null;
+}
+
+export interface ForumReplyCreateDto {
+  content: string;
+}
