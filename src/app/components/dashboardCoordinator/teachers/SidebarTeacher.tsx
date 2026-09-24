@@ -8,10 +8,12 @@ import LogoutButton from "../../logoutButton/LogoutButton";
 const NAV_ITEMS = [
   { href: "/dashboard-teacher", label: "Início" },
   { href: "/dashboard-teacher/my-courses", label: "Cursos em andamento" },
-  { href: "/dashboard-teacher/modules", label: "Gerenciar Módulos" },
-  { href: "/dashboard-teacher/add-lesson", label: "Adicionar Aula" },
+  { href: "/dashboard-teacher/modules", label: "Gerenciar módulos" },
+  { href: "/dashboard-teacher/add-lesson", label: "Adicionar aula" },
   { href: "/dashboard-teacher/materials", label: "Materiais" },
+  { href: "/dashboard-teacher/assessments", label: "Atividades e provas" },
   { href: "/dashboard-teacher/forum", label: "Fórum" },
+  { href: "/dashboard-teacher/certificates", label: "Certificados" },
 ];
 
 export default function DashboardSidebarTeacher() {
