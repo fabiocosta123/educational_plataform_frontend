@@ -7,7 +7,7 @@ import LogoutButton from "../../logoutButton/LogoutButton";
 
 const NAV_ITEMS = [
   { href: "/dashboard-teacher", label: "Início" },
-  { href: "/dashboard-teacher/my-courses", label: "Cursos em andamento" },
+  { href: "/dashboard-teacher/my-courses", label: "Meus cursos" },
   { href: "/dashboard-teacher/modules", label: "Gerenciar módulos" },
   { href: "/dashboard-teacher/add-lesson", label: "Adicionar aula" },
   { href: "/dashboard-teacher/materials", label: "Materiais" },
