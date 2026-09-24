@@ -12,6 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  compareMonthKeysDesc,
+  moneyBr,
+  monthLabel,
+  paymentMonthKey,
+} from "../../../lib/financeMonths";
 
 interface PaymentItem {
   id: number;
@@ -41,8 +47,7 @@ interface PixPayload {
   message: string;
 }
 
-const money = (value: number) =>
-  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const money = moneyBr;
 
 export default function StudentFinancePage() {
   const { user, loading } = useAuth();
@@ -144,7 +149,14 @@ export default function StudentFinancePage() {
         <>
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#163E72] mb-3">Em aberto / atrasados</h2>
-            {renderItems(data.overdue, "Nenhum boleto atrasado.", true)}
+            {renderItems(
+              [...data.overdue].sort(
+                (a, b) =>
+                  new Date(a.dueDate ?? 0).getTime() - new Date(b.dueDate ?? 0).getTime()
+              ),
+              "Nenhum boleto atrasado.",
+              true
+            )}
           </section>
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#163E72] mb-3">Sem vencimento definido</h2>
@@ -152,11 +164,35 @@ export default function StudentFinancePage() {
           </section>
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#163E72] mb-3">A vencer</h2>
-            {renderItems(data.upcoming, "Nenhum boleto a vencer.", true)}
+            {renderItems(
+              [...data.upcoming].sort(
+                (a, b) =>
+                  new Date(a.dueDate ?? 0).getTime() - new Date(b.dueDate ?? 0).getTime()
+              ),
+              "Nenhum boleto a vencer.",
+              true
+            )}
           </section>
           <section className="mb-8">
-            <h2 className="text-lg font-bold text-[#163E72] mb-3">Pagos</h2>
-            {renderItems(data.paid, "Nenhum pagamento confirmado ainda.", false)}
+            <h2 className="text-lg font-bold text-[#163E72] mb-3">Histórico de pagos</h2>
+            {data.paid.length === 0 ? (
+              <p className="text-gray-600 text-sm">Nenhum pagamento confirmado ainda.</p>
+            ) : (
+              Object.entries(
+                data.paid.reduce<Record<string, PaymentItem[]>>((groups, item) => {
+                  const key = paymentMonthKey(item);
+                  groups[key] = [...(groups[key] ?? []), item];
+                  return groups;
+                }, {})
+              )
+                .sort(([a], [b]) => compareMonthKeysDesc(a, b))
+                .map(([key, items]) => (
+                  <div key={key} className="mb-5">
+                    <h3 className="text-sm font-semibold text-[#255690] mb-2">{monthLabel(key)}</h3>
+                    {renderItems(items, "", false)}
+                  </div>
+                ))
+            )}
           </section>
         </>
       )}

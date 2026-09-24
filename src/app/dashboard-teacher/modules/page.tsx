@@ -99,7 +99,7 @@ export default function ModulesPage() {
       setLoading(true);
 
       const response = await api.get<Course[]>(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/Courses/my-courses`
+        "/Courses/my-courses"
       );
 
       setCourses(response.data ?? []);
@@ -147,7 +147,7 @@ export default function ModulesPage() {
       };
 
       const response = await api.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/CourseModules`,
+        "/CourseModules",
         payload
       );
 
@@ -301,7 +301,7 @@ export default function ModulesPage() {
       }
 
       const response = await api.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/Lessons`,
+        "/Lessons",
         formData
       );
 
