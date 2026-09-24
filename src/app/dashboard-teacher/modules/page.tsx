@@ -857,7 +857,7 @@ export default function ModulesPage() {
 
                                       <Clock className="h-4 w-4" />
 
-                                      Duração
+                                      Duração (minutos)
 
                                     </label>
 

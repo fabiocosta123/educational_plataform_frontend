@@ -4,19 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
-
 import LogoutButton from "../logoutButton/LogoutButton";
 
 const NAV_ITEMS = [
   { href: "/dashboard-student", label: "Início" },
-  { href: "/dashboard/my-courses", label: "Meu Aprendizado" },
-  { href: "/dashboard/courses", label: "Cursos disponíveis" },
-  { href: "/dashboard/activities", label: "Atividades" },
-  { href: "/dashboard/calendar", label: "Calendário" },
-  { href: "/dashboard/report", label: "Boletim" },
-  { href: "/dashboard/finance", label: "Financeiro" },
-  { href: "/dashboard/certificates", label: "Certificados" },
+  { href: "/dashboard-student/available-courses", label: "Cursos disponíveis" },
+  { href: "/dashboard-student/assessments", label: "Atividades e provas" },
   { href: "/dashboard-student/forum", label: "Fórum" },
+  { href: "/dashboard-student/certificates", label: "Certificados" },
+  { href: "/dashboard-student/finance", label: "Financeiro" },
 ];
 
 export default function DashboardSidebar() {

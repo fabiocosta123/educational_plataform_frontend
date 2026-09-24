@@ -104,7 +104,7 @@ export default function EditLessonPage() {
 
         setDurationSeconds(
           String(
-            loadedLesson.durationSeconds ?? 0
+            Math.max(1, Math.round((loadedLesson.durationSeconds ?? 0) / 60))
           )
         );
 
@@ -235,15 +235,15 @@ export default function EditLessonPage() {
       return;
     }
 
-    const duration =
+    const durationMinutes =
       Number(durationSeconds);
 
     if (
-      !Number.isInteger(duration) ||
-      duration < 0
+      !Number.isInteger(durationMinutes) ||
+      durationMinutes < 1
     ) {
       setError(
-        "A duração deve ser um número inteiro maior ou igual a zero."
+        "A duração deve ser um número inteiro de minutos maior que zero."
       );
       return;
     }
@@ -276,7 +276,7 @@ export default function EditLessonPage() {
           videoUrl:
             videoUrl.trim() || null,
 
-          durationSeconds: duration,
+          durationSeconds: durationMinutes * 60,
 
           order: lessonOrder,
 
@@ -560,7 +560,7 @@ export default function EditLessonPage() {
           <div className="space-y-2">
 
             <Label htmlFor="lesson-duration">
-              Duração (segundos)
+              Duração (minutos)
             </Label>
 
             <Input

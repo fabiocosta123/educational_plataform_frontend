@@ -21,6 +21,7 @@ import {
 import DashboardFinance from "@/app/components/dashboardCoordinator/finance/DashboardFinance";
 import { StudentDto, Course, FinanceSummary, Payment, PaymentStatus } from "@/types/interfaces";
 import api from "../../services/api";
+import { toast } from "react-toastify";
 
 export default function FinancePage() {
     const [searchName, setSearchName] = useState<string>("");
@@ -42,6 +43,9 @@ export default function FinancePage() {
     const [statusFilter, setStatusFilter] = useState<string>("Todos");
     const [noResultsMessage, setNoResultsMessage] = useState<string>("");
     const [noStudentMessage, setNoStudentMessage] = useState<string>("");
+    const [settleOpen, setSettleOpen] = useState(false);
+    const [settleTarget, setSettleTarget] = useState<{ id: number; name: string } | null>(null);
+    const [paidDate, setPaidDate] = useState(() => new Date().toISOString().slice(0, 10));
 
     // 🔹 Mapeamento de status string para texto amigável
     const statusLabels: Record<PaymentStatus, string> = {
@@ -101,13 +105,32 @@ export default function FinancePage() {
         }
     }, [filteredPayments, statusFilter]);
 
-    const handleMarkAsPaid = async (id: number, userName: string) => {
+    const openSettle = (id: number, userName: string) => {
+        setSettleTarget({ id, name: userName });
+        setPaidDate(new Date().toISOString().slice(0, 10));
+        setSettleOpen(true);
+    };
+
+    const handleMarkAsPaid = async () => {
+        if (!settleTarget) return;
+        if (!paidDate) {
+            toast.error("Informe a data em que o pagamento foi feito.");
+            return;
+        }
         try {
-            await api.post(`/finance/pix/confirm/${id}`);
+            await api.post(`/finance/pix/confirm/${settleTarget.id}`, { paidAt: paidDate });
             const resHistory = await api.get("/finance/pix/history");
             setSummary(resHistory.data.summary);
             setPayments(resHistory.data.payments);
-        } catch (error) {
+            setSettleOpen(false);
+            toast.success(`Mensalidade de ${settleTarget.name || "aluno"} dada como paga.`);
+        } catch (error: unknown) {
+            const message =
+                typeof error === "object" && error && "response" in error
+                    ? (error as { response?: { data?: string | { message?: string } } }).response?.data
+                    : undefined;
+            const text = typeof message === "string" ? message : message?.message;
+            toast.error(text || "Não foi possível dar baixa na mensalidade.");
             console.error("Erro ao marcar pagamento:", error);
         }
     };
@@ -207,14 +230,30 @@ export default function FinancePage() {
                                             >
                                                 Status: {statusLabels[payment.status] ?? "Indefinido"}
                                             </p>
-                                            <p>Vencimento: {payment.dueDate ?? "Não informado"}</p>
-                                            <p>Pagamento: {payment.paidAt ?? "Pendente"}</p>
+                                            <p>
+                                                Vencimento:{" "}
+                                                {payment.dueDate
+                                                    ? new Date(payment.dueDate).toLocaleDateString("pt-BR")
+                                                    : "Não informado"}
+                                            </p>
+                                            <p>
+                                                Data do pagamento:{" "}
+                                                {payment.paidAt
+                                                    ? new Date(payment.paidAt).toLocaleDateString("pt-BR")
+                                                    : "Pendente"}
+                                            </p>
+                                            {payment.settledAt && (
+                                                <p>
+                                                    Data da baixa:{" "}
+                                                    {new Date(payment.settledAt).toLocaleDateString("pt-BR")}
+                                                </p>
+                                            )}
 
                                             {payment.status === "Pending" && (
                                                 <Button
                                                     className="mt-2"
                                                     onClick={() =>
-                                                        handleMarkAsPaid(payment.id, selectedStudent.userName)
+                                                        openSettle(payment.id, selectedStudent.userName)
                                                     }
                                                 >
                                                     Dar baixa na mensalidade
@@ -249,7 +288,7 @@ export default function FinancePage() {
                 totalPending={summary?.totalPending ?? 0}
                 defaultRate={summary?.defaultRate ?? 0}
                 payments={payments}
-                onMarkAsPaid={handleMarkAsPaid}
+                onMarkAsPaid={openSettle}
                 showAll={showAll}
                 setShowAll={setShowAll}
                 statusFilter={statusFilter}
@@ -338,6 +377,33 @@ export default function FinancePage() {
                             Confirmar
                         </Button>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={settleOpen} onOpenChange={setSettleOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Dar baixa na mensalidade</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-sm text-muted-foreground">
+                        Informe o dia em que o aluno pagou. A data da baixa será registrada automaticamente agora.
+                    </p>
+                    <div className="space-y-2">
+                        <Label htmlFor="paidDate">Data do pagamento</Label>
+                        <Input
+                            id="paidDate"
+                            type="date"
+                            max={new Date().toISOString().slice(0, 10)}
+                            value={paidDate}
+                            onChange={(e) => setPaidDate(e.target.value)}
+                        />
+                    </div>
+                    <Button
+                        onClick={handleMarkAsPaid}
+                        className="bg-[#163E72] hover:bg-[#255690] text-white"
+                    >
+                        Confirmar baixa
+                    </Button>
                 </DialogContent>
             </Dialog>
         </div>

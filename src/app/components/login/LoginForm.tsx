@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../hooks/useAuth";
+import { dashboardPath } from "../../lib/dashboardPath";
 import api from "../../services/api";
 
 
@@ -51,17 +52,14 @@ export default function LoginForm() {
       setLogin("");
       setPassword("");
 
-      const profile = parseInt(decoded.profile);
-
-      if (profile == 1) {
-        router.push("/dashboard-student");
-      }
-      else if (profile == 2) {
-        router.push("/dashboard-teacher");
-      }
-      else if (profile == 3) {
-        router.push("/dashboard-coordinator");
-      }
+      router.push(
+        dashboardPath({
+          id: parseInt(decoded.nameid),
+          name: decoded.unique_name,
+          role: decoded.role,
+          profile: parseInt(decoded.profile),
+        })
+      );
 
     } catch (err: any) {
       const data = err.response?.data;

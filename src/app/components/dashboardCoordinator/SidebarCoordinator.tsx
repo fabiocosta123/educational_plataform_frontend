@@ -12,9 +12,11 @@ const NAV_ITEMS = [
   { href: "/dashboard-coordinator/courses", label: "Cursos" },
   { href: "/dashboard-coordinator/teachers", label: "Professores" },
   { href: "/dashboard-coordinator/students", label: "Alunos" },
+  { href: "/dashboard-coordinator/assessments", label: "Atividades e provas" },
+  { href: "/dashboard-coordinator/forum", label: "Fórum" },
+  { href: "/dashboard-coordinator/certificates", label: "Certificados" },
   { href: "/dashboard-coordinator/reports", label: "Relatórios" },
   { href: "/dashboard-coordinator/finance", label: "Financeiro" },
-  { href: "/dashboard-coordinator/forum", label: "Fórum" },
 ];
 
 export default function SidebarCoordinator() {

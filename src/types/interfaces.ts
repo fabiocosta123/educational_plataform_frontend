@@ -181,6 +181,7 @@ export interface Payment {
   status: PaymentStatus;
   dueDate?: string;
   paidAt?: string;
+  settledAt?: string;
   course?: { title: string; teacher?: string };
   student?: { userName: string };
 }

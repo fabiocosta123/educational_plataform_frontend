@@ -117,8 +117,11 @@ export default function DashboardFinance({
                       }`}>
                       Status: {statusLabels[effectiveStatus]}
                     </p>
-                    <p><strong>Vencimento:</strong> {p.dueDate ?? "Não informado"}</p>
-                    <p><strong>Pagamento:</strong> {p.paidAt ?? "Pendente"}</p>
+                    <p><strong>Vencimento:</strong> {p.dueDate ? new Date(p.dueDate).toLocaleDateString("pt-BR") : "Não informado"}</p>
+                    <p><strong>Data do pagamento:</strong> {p.paidAt ? new Date(p.paidAt).toLocaleDateString("pt-BR") : "Pendente"}</p>
+                    {p.settledAt && (
+                      <p><strong>Data da baixa:</strong> {new Date(p.settledAt).toLocaleDateString("pt-BR")}</p>
+                    )}
 
                     {effectiveStatus === "Pending" && (
                       <Button
