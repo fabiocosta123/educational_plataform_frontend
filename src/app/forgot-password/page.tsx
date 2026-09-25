@@ -65,8 +65,8 @@ export default function ForgotPassword() {
 
         {!resetLink && (
           <p className="mt-4 text-sm text-gray-600">
-            Se o e-mail existir, o link aparece aqui. SMTP ainda não está
-            configurado no servidor.
+            Ainda não enviamos esse link por e-mail. Se a conta existir, o
+            link aparece nesta página para você abrir e criar a nova senha.
           </p>
         )}
 

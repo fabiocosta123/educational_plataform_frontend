@@ -1,13 +1,14 @@
-
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import Link from "next/link";
 import Cleave from "cleave.js/react";
 import { RegisterFormProps } from "@/types/interfaces";
 import { isValidCpf } from "@/utils/cpf";
+import api from "@/app/services/api";
 
 function getRegisterErrorMessage(error: unknown, fallback: string) {
   if (!axios.isAxiosError(error)) {
@@ -42,6 +43,7 @@ function getRegisterErrorMessage(error: unknown, fallback: string) {
 }
 
 export default function RegisterForm({ courseId }: RegisterFormProps) {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
@@ -52,7 +54,6 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [registered, setRegistered] = useState(false);
 
   const isPasswordValid = password.length >= 6;
   const passwordsMatch =
@@ -90,25 +91,27 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/Auth/register-course/${courseId}`,
-        {
-          userName: name.trim(),
-          password,
-          userEmail: email.trim(),
-          cpf,
-          phoneNumber,
-          birthDate,
-        }
-      );
+      const payload = {
+        userName: name.trim(),
+        password,
+        userEmail: email.trim(),
+        cpf,
+        phoneNumber,
+        birthDate,
+      };
 
-      console.log("Cadastro realizado:", response.data);
+      if (courseId) {
+        await api.post(`/Auth/register-course/${courseId}`, payload);
+      } else {
+        await api.post("/Auth/register", {
+          ...payload,
+          profile: 1,
+        });
+      }
 
-      toast.success(
-        "Cadastro realizado com sucesso!"
-      );
-
-      setRegistered(true);
+      toast.success("Cadastro realizado com sucesso! Faça login.");
+      router.push("/login");
+      return;
     } catch (err: unknown) {
       console.error("Erro ao registrar aluno:", err);
 
@@ -121,48 +124,6 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
     } finally {
       setLoading(false);
     }
-  }
-
-  if (registered) {
-    return (
-      <div className="w-full rounded-xl bg-white p-6 shadow-lg text-center space-y-5">
-        <div>
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-            <span className="text-2xl text-green-600">
-              ✓
-            </span>
-          </div>
-
-          <h2 className="text-xl font-bold text-[#163E72]">
-            Cadastro realizado!
-          </h2>
-
-          <p className="mt-2 text-sm text-gray-600">
-            Sua conta foi criada e sua matrícula foi
-            registrada.
-          </p>
-        </div>
-
-        <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
-          <p>
-            Sua matrícula está aguardando a confirmação
-            do pagamento.
-          </p>
-
-          <p className="mt-2">
-            Após a confirmação, o curso será liberado
-            para você.
-          </p>
-        </div>
-
-        <Link
-          href="/login"
-          className="block w-full rounded-lg bg-[#338B97] px-4 py-3 font-semibold text-white transition hover:bg-[#255690]"
-        >
-          Ir para o login
-        </Link>
-      </div>
-    );
   }
 
   return (
