@@ -54,8 +54,6 @@ export default function LoginForm() {
 
       router.push(
         dashboardPath({
-          id: parseInt(decoded.nameid),
-          name: decoded.unique_name,
           role: decoded.role,
           profile: parseInt(decoded.profile),
         })
