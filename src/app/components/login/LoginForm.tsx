@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import { Eye, EyeOff } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../hooks/useAuth";
 import { dashboardPath } from "../../lib/dashboardPath";
 import api from "../../services/api";
@@ -26,6 +25,7 @@ export default function LoginForm() {
   const isPasswordValid = password.length >= 6;
   const [login, setLogin] = useState("");
   const [loading, setLoading] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   const completeLogin = useCallback(
@@ -60,8 +60,16 @@ export default function LoginForm() {
 
     const scriptId = "google-gsi-client";
     const initGoogle = () => {
-      window.google?.accounts.id.initialize({
+      const googleId = window.google?.accounts.id;
+      const buttonHost = googleButtonRef.current;
+      if (!googleId || !buttonHost) {
+        return;
+      }
+
+      googleId.initialize({
         client_id: googleClientId,
+        ux_mode: "popup",
+        context: "signin",
         callback: async (response) => {
           if (!response.credential) {
             toast.error("Google não retornou credencial.");
@@ -88,6 +96,14 @@ export default function LoginForm() {
             setLoading(false);
           }
         },
+      });
+
+      buttonHost.innerHTML = "";
+      googleId.renderButton(buttonHost, {
+        type: "icon",
+        shape: "circle",
+        theme: "outline",
+        size: "large",
       });
     };
 
@@ -135,22 +151,6 @@ export default function LoginForm() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    if (!googleClientId) {
-      toast.error(
-        "Login Google ainda não está configurado. Defina NEXT_PUBLIC_GOOGLE_CLIENT_ID e Google:ClientId."
-      );
-      return;
-    }
-
-    if (!window.google?.accounts?.id) {
-      toast.error("Google ainda está carregando. Tente de novo em instantes.");
-      return;
-    }
-
-    window.google.accounts.id.prompt();
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4 w-80">
       <input
@@ -190,17 +190,14 @@ export default function LoginForm() {
         {loading ? "Entrando" : "Login"}
       </button>
 
-      <div className="flex justify-center">
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          aria-label="Entrar com Google"
-          title="Entrar com Google"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-60"
-        >
-          <FcGoogle size={24} />
-        </button>
+      <div className="flex flex-col items-center gap-2">
+        {googleClientId ? (
+          <div ref={googleButtonRef} className="flex min-h-10 min-w-10 justify-center" />
+        ) : (
+          <p className="text-center text-xs text-gray-500">
+            Login Google não configurado.
+          </p>
+        )}
       </div>
 
       <Link
