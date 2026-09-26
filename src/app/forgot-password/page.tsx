@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { toast } from "react-toastify";
 import api from "../services/api";
+import { BackLink } from "../components/AppLinks";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -55,12 +55,12 @@ export default function ForgotPassword() {
         </form>
 
         {resetLink && (
-          <p className="mt-4 break-all text-sm text-[#163E72]">
-            Link (válido 1 hora):{" "}
-            <a href={resetLink} className="underline">
-              {resetLink}
-            </a>
-          </p>
+          <a
+            href={resetLink}
+            className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-[#338B97] bg-[#338B97]/10 px-4 py-3 text-center text-sm font-semibold text-[#163E72] hover:bg-[#338B97]/20"
+          >
+            Abrir link de redefinição
+          </a>
         )}
 
         {!resetLink && (
@@ -70,12 +70,7 @@ export default function ForgotPassword() {
           </p>
         )}
 
-        <Link
-          href="/login"
-          className="mt-4 block text-center text-sm text-gray-600 hover:text-gray-800"
-        >
-          Voltar ao login
-        </Link>
+        <BackLink href="/login">Voltar ao login</BackLink>
       </div>
     </main>
   );

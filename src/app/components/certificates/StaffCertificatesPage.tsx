@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../services/api";
+import { editActionClass } from "@/app/components/AppLinks";
 
 interface CertificateRow {
   id: number;
@@ -54,10 +55,10 @@ export default function StaffCertificatesPage() {
             </div>
             <button
               type="button"
-              className="text-[#338B97] underline"
+              className={editActionClass}
               onClick={() => void download(row.code)}
             >
-              PDF
+              Baixar PDF
             </button>
           </div>
         ))}

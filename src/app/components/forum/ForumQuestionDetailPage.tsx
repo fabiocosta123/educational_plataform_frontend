@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 
@@ -18,6 +17,7 @@ import {
   forumCoursePath,
   isStaffReply,
 } from "./forumPaths";
+import { BackLink } from "@/app/components/AppLinks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,12 +131,7 @@ export default function ForumQuestionDetailPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href={forumCoursePath(basePath, courseId)}
-        className="text-sm text-[#163E72] hover:underline"
-      >
-        ← Voltar ao fórum
-      </Link>
+      <BackLink href={forumCoursePath(basePath, courseId)}>Voltar ao fórum</BackLink>
 
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

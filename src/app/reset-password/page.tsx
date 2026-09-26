@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { Suspense } from "react";
 import api from "../services/api";
+import { BackLink } from "../components/AppLinks";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -84,12 +84,7 @@ function ResetPasswordForm() {
             {loading ? "Salvando..." : "Salvar senha"}
           </button>
         </form>
-        <Link
-          href="/login"
-          className="mt-4 block text-center text-sm text-gray-600 hover:text-gray-800"
-        >
-          Voltar ao login
-        </Link>
+        <BackLink href="/login">Voltar ao login</BackLink>
       </div>
     </main>
   );

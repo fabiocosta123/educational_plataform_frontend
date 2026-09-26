@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
+import { BackLink, editActionClass } from "@/app/components/AppLinks";
 
 interface ForumQuestionList {
   id: number;
@@ -124,9 +124,7 @@ export default function StaffForumCoursePage({ backHref }: { backHref: string })
 
   return (
     <div>
-      <Link href={backHref} className="text-[#338B97] text-sm">
-        ← Voltar aos cursos
-      </Link>
+      <BackLink href={backHref}>Voltar aos cursos</BackLink>
       <h1 className="text-2xl font-bold text-[#163E72] mt-2 mb-6">Fórum do curso</h1>
 
       <form onSubmit={createQuestion} className="bg-white rounded-lg shadow-md p-5 mb-6 space-y-3">
@@ -155,7 +153,7 @@ export default function StaffForumCoursePage({ backHref }: { backHref: string })
                 <button
                   type="button"
                   disabled={saving}
-                  className="text-sm text-[#338B97] underline"
+                  className={editActionClass}
                   onClick={() => void setResolved(question.id, !question.isResolved)}
                 >
                   {question.isResolved ? "Reabrir" : "Marcar como resolvida"}

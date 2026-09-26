@@ -9,6 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { dashboardPath } from "../../lib/dashboardPath";
 import api from "../../services/api";
+import { BackLink, textNavClass } from "../AppLinks";
 
 export interface JwtPayload {
   nameid: string;
@@ -200,19 +201,11 @@ export default function LoginForm() {
         )}
       </div>
 
-      <Link
-        href="/forgot-password"
-        className="block text-sm text-center text-gray-600 hover:text-gray-800"
-      >
+      <Link href="/forgot-password" className={`${textNavClass} w-full`}>
         Esqueci minha senha
       </Link>
 
-      <Link
-        href="/"
-        className="block text-sm text-center text-gray-600 hover:text-gray-800"
-      >
-        Voltar
-      </Link>
+      <BackLink href="/">Voltar</BackLink>
     </form>
   );
 }

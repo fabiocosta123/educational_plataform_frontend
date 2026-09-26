@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../hooks/useAuth";
 import api, { API_BASE_URL } from "../../../services/api";
+import { BackLink } from "../../../components/AppLinks";
 
 interface Question {
   id: number;
@@ -240,9 +240,7 @@ export default function TakeAssessmentPage() {
 
   return (
     <div>
-      <Link href="/dashboard-student/assessments" className="text-[#338B97] text-sm">
-        ← Voltar
-      </Link>
+      <BackLink href="/dashboard-student/assessments">Voltar</BackLink>
       <h1 className="text-2xl font-bold text-[#163E72] mt-2">{assessment.title}</h1>
       <p className="text-gray-600 mb-6">
         {assessment.courseTitle} • {isExam ? "Prova" : "Atividade"}

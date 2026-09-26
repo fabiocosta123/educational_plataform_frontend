@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { dangerActionClass, editActionClass, quietActionClass } from "@/app/components/AppLinks";
 import api from "../../services/api";
 
 interface CourseOption {
@@ -278,7 +279,7 @@ export default function StaffAssessmentsPage({
             {saving ? "A guardar..." : editingId ? "Guardar alterações" : "Publicar"}
           </button>
           {editingId && (
-            <button type="button" className="text-gray-600 underline" onClick={resetForm}>
+            <button type="button" className={quietActionClass} onClick={resetForm}>
               Cancelar edição
             </button>
           )}
@@ -294,11 +295,11 @@ export default function StaffAssessmentsPage({
                 {row.courseTitle} • {row.type === "Exam" ? "Prova" : "Atividade"} • {row.questionsCount} perguntas
               </p>
             </div>
-            <div className="flex gap-3 h-fit">
-              <button type="button" className="text-[#338B97] underline text-sm" onClick={() => void startEdit(row.id)}>
+            <div className="flex gap-2 h-fit">
+              <button type="button" className={editActionClass} onClick={() => void startEdit(row.id)}>
                 Editar
               </button>
-              <button type="button" className="text-red-700 underline text-sm" onClick={() => void remove(row.id, row.title)}>
+              <button type="button" className={dangerActionClass} onClick={() => void remove(row.id, row.title)}>
                 Excluir
               </button>
             </div>

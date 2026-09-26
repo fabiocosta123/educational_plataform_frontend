@@ -11,6 +11,7 @@ import RestrictedYouTubePlayer, {
   extractYouTubeId,
 } from "../../../../../components/dashboardStudent/RestrictedYouTubePlayer";
 import MaterialOpenLink from "../../../../../components/MaterialOpenLink";
+import { BackLink } from "../../../../../components/AppLinks";
 
 interface ProgressItem {
   lessonId: number;
@@ -164,9 +165,7 @@ export default function StudentLessonPage() {
 
   return (
     <div>
-      <Link href={`/dashboard-student/courses/${courseId}`} className="text-[#338B97] text-sm">
-        ← Voltar ao curso
-      </Link>
+      <BackLink href={`/dashboard-student/courses/${courseId}`}>Voltar ao curso</BackLink>
       <h1 className="text-2xl font-bold text-[#163E72] mt-2 mb-2">{lesson.title}</h1>
       {lesson.description && <p className="text-gray-600 mb-4">{lesson.description}</p>}
 
