@@ -45,6 +45,7 @@ interface PixPayload {
   copiaCola: string;
   provider: string;
   message: string;
+  expiresAt?: string;
 }
 
 const money = moneyBr;
@@ -56,6 +57,7 @@ export default function StudentFinancePage() {
   const [pix, setPix] = useState<PixPayload | null>(null);
   const [pixOpen, setPixOpen] = useState(false);
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [checkingPix, setCheckingPix] = useState(false);
 
   const loadFinance = () =>
     api
@@ -100,6 +102,40 @@ export default function StudentFinancePage() {
     }
   };
 
+  const checkPixPaid = async (showWaiting: boolean) => {
+    if (!pix?.paymentId) return;
+    try {
+      setCheckingPix(true);
+      const res = await api.post<{ paid: boolean; message?: string }>(
+        `/me/finance/${pix.paymentId}/pix/status`
+      );
+      if (res.data.paid) {
+        toast.success(res.data.message || "Pagamento confirmado.");
+        setPixOpen(false);
+        setPix(null);
+        await loadFinance();
+        return;
+      }
+      if (showWaiting) {
+        toast.info(res.data.message || "Ainda não identificamos o pagamento.");
+      }
+    } catch {
+      if (showWaiting) {
+        toast.error("Não foi possível consultar o PIX.");
+      }
+    } finally {
+      setCheckingPix(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!pixOpen || !pix?.paymentId) return;
+    const timer = window.setInterval(() => {
+      void checkPixPaid(false);
+    }, 8000);
+    return () => window.clearInterval(timer);
+  }, [pixOpen, pix?.paymentId]);
+
   if (loading || !user) return <p>Carregando...</p>;
 
   const renderItems = (items: PaymentItem[], empty: string, canPay: boolean) => (
@@ -142,8 +178,8 @@ export default function StudentFinancePage() {
     <div>
       <h1 className="text-2xl font-bold text-[#163E72] mb-2">Meu financeiro</h1>
       <p className="text-gray-600 mb-6">
-        Boletos em aberto, a vencer e já pagos. O PIX provisório gera QR Code e copia e cola;
-        a baixa automática completa quando a MyCredit confirmar o pagamento.
+        Boletos em aberto, a vencer e já pagos. O PIX é emitido pela MyCredit.
+        Depois de pagar, clique em Já paguei ou aguarde a confirmação automática.
       </p>
       {data && (
         <>
@@ -220,6 +256,15 @@ export default function StudentFinancePage() {
                 className="w-full bg-[#163E72] hover:bg-[#255690] text-white"
               >
                 Copiar PIX
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={checkingPix}
+                onClick={() => void checkPixPaid(true)}
+                className="w-full"
+              >
+                {checkingPix ? "Consultando..." : "Já paguei"}
               </Button>
               <p className="text-xs text-muted-foreground">{pix.message}</p>
             </div>
