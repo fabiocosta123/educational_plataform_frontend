@@ -96,6 +96,10 @@ export default function AvailableCourseDetailsPage() {
         type="button"
         className="bg-[#163E72] text-white hover:bg-[#255690]"
         onClick={async () => {
+          if (!user) {
+            router.push("/login");
+            return;
+          }
           try {
             await api.post("/CoursesEnrollment", {
               userId: user.id,
