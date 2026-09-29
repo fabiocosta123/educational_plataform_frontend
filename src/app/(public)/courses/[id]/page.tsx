@@ -34,6 +34,9 @@ interface CourseDto {
   description?: string | null;
   teacherName?: string | null;
   lessonsCount?: number;
+  price?: number;
+  installmentCount?: number;
+  installmentAmount?: number;
   modules?: ModuleDto[];
 }
 
@@ -139,6 +142,24 @@ export default function CourseDetailsPage() {
                 {course.description || "Descrição não informada."}
               </p>
             </div>
+            {course.price && course.price > 0 ? (
+              <div>
+                <h2 className="mb-2 text-lg font-semibold text-[#163E72]">
+                  Investimento
+                </h2>
+                <p className="text-base font-semibold text-[#163E72]">
+                  {course.price.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                  {course.installmentCount && course.installmentAmount
+                    ? ` em ${course.installmentCount}x de ${course.installmentAmount.toLocaleString(
+                        "pt-BR",
+                        { style: "currency", currency: "BRL" }
+                      )} via PIX`
+                <p className="mt-2 text-sm text-gray-600">
+                  A 1ª parcela é paga na inscrição e libera o curso. As demais vencem a cada 30 dias.
+                </p>
 
             {course.teacherName && (
               <div>

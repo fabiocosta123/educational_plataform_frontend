@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import api from "../../services/api";
 import { isValidCpf, formatCpf } from "@/utils/cpf";
+import { isValidEmailFormat } from "@/utils/email";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
@@ -88,6 +89,11 @@ export default function TeacherForm({ onSave, initialData }: TeacherFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isValidEmailFormat(userEmail)) {
+      toast.error("Informe um e-mail real e válido.");
+      return;
+    }
 
     if (cpf && !isValidCpf(cpf)) {
       const message = "Informe um CPF válido.";
@@ -205,6 +211,9 @@ export default function TeacherForm({ onSave, initialData }: TeacherFormProps) {
               onChange={(e) => setUserEmail(e.target.value)}
               required
             />
+            <p className="text-xs text-gray-500">
+              Precisa ser um e-mail real, com domínio que receba mensagens.
+            </p>
           </div>
 
           <Input value="Professor" readOnly className="bg-gray-100" />

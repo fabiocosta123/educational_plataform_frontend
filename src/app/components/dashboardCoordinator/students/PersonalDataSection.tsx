@@ -63,6 +63,9 @@ export default function PersonalDataSection({
           onChange={(e) => setUserEmail(e.target.value)}
           placeholder="email@empresa.com"
         />
+        <p className="text-xs text-gray-500">
+          Use um e-mail real. Endereços inventados não são aceitos.
+        </p>
       </div>
 
       {!isEditing && (

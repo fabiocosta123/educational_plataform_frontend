@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Payment, PaymentStatus, DashboardFinanceProps } from "@/types/interfaces";
 import {
   compareMonthKeysDesc,
@@ -38,11 +39,15 @@ const dueTime = (payment: Payment) => {
 function PaymentCard({
   payment,
   onMarkAsPaid,
+  onUpdateAmount,
 }: {
   payment: Payment;
   onMarkAsPaid: (id: number, userName: string) => void;
+  onUpdateAmount?: (id: number, amount: number) => void;
 }) {
   const effectiveStatus = getEffectiveStatus(payment);
+  const [amountDraft, setAmountDraft] = useState(String(payment.amount ?? 0));
+
   return (
     <Card className="flex flex-col justify-between rounded-lg border shadow-sm">
       <CardHeader>
@@ -51,6 +56,11 @@ function PaymentCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
+        {payment.installmentNumber ? (
+          <p>
+            <strong>Parcela:</strong> {payment.installmentNumber}
+          </p>
+        ) : null}
         <p>
           <strong>Professor:</strong> {payment.course?.teacher || "Não informado"}
         </p>
@@ -81,6 +91,27 @@ function PaymentCard({
             <strong>Data da baixa:</strong> {new Date(payment.settledAt).toLocaleDateString("pt-BR")}
           </p>
         )}
+        {effectiveStatus === "Pending" && onUpdateAmount && (
+          <div className="space-y-2 pt-2">
+            <Input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={amountDraft}
+              onChange={(e) => setAmountDraft(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() =>
+                onUpdateAmount(payment.id, Number(amountDraft.replace(",", ".")) || 0)
+              }
+            >
+              Atualizar valor (atraso / acréscimo)
+            </Button>
+          </div>
+        )}
         {effectiveStatus === "Pending" && (
           <Button
             className="mt-2 bg-[#163E72] text-white hover:bg-[#255690]"
@@ -100,6 +131,7 @@ export default function DashboardFinance({
   defaultRate,
   payments,
   onMarkAsPaid,
+  onUpdateAmount,
   statusFilter = "Todos",
   studentFilter = "",
 }: DashboardFinanceProps) {
@@ -208,7 +240,12 @@ export default function DashboardFinance({
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {openPayments.map((payment) => (
-              <PaymentCard key={payment.id} payment={payment} onMarkAsPaid={onMarkAsPaid} />
+              <PaymentCard
+                key={payment.id}
+                payment={payment}
+                onMarkAsPaid={onMarkAsPaid}
+                onUpdateAmount={onUpdateAmount}
+              />
             ))}
           </div>
         )}
@@ -229,7 +266,12 @@ export default function DashboardFinance({
               </div>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {group.items.map((payment) => (
-                  <PaymentCard key={payment.id} payment={payment} onMarkAsPaid={onMarkAsPaid} />
+                  <PaymentCard
+                key={payment.id}
+                payment={payment}
+                onMarkAsPaid={onMarkAsPaid}
+                onUpdateAmount={onUpdateAmount}
+              />
                 ))}
               </div>
             </div>

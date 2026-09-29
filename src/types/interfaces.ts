@@ -3,6 +3,9 @@ export interface Course {
     title: string;
     description: string;
     studentsCount?: number;
+    price?: number;
+    installmentCount?: number;
+    installmentAmount?: number;
 }
 
 export interface CourseReadDto {
@@ -12,6 +15,10 @@ export interface CourseReadDto {
 
   teacherId?: number;
   teacherName: string;
+
+  price?: number;
+  installmentCount?: number;
+  installmentAmount?: number;
 
   lessonsCount: number;
 
@@ -182,6 +189,7 @@ export interface Payment {
   dueDate?: string;
   paidAt?: string;
   settledAt?: string;
+  installmentNumber?: number;
   course?: { title: string; teacher?: string };
   student?: { userName: string };
 }
@@ -203,6 +211,7 @@ export interface DashboardFinanceProps {
   defaultRate: number;
   payments: Payment[];
   onMarkAsPaid: (id: number, userName: string) => void;
+  onUpdateAmount?: (id: number, amount: number) => void;
   showAll?: boolean;
   setShowAll: (value: boolean) => void;
   statusFilter?: string;

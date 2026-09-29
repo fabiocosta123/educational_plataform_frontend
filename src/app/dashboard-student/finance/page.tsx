@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
@@ -27,6 +27,7 @@ interface PaymentItem {
   paidAt?: string;
   settledAt?: string;
   courseTitle: string;
+  installmentNumber?: number;
   bucket: string;
 }
 
@@ -53,6 +54,9 @@ const money = moneyBr;
 export default function StudentFinancePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const payFirst = searchParams.get("payFirst") === "1";
+  const autoPayStarted = useRef(false);
   const [data, setData] = useState<FinancePayload | null>(null);
   const [pix, setPix] = useState<PixPayload | null>(null);
   const [pixOpen, setPixOpen] = useState(false);
@@ -91,6 +95,17 @@ export default function StudentFinancePage() {
       setPayingId(null);
     }
   };
+
+  useEffect(() => {
+    if (!payFirst || !data || autoPayStarted.current) return;
+    const first = [...data.overdue, ...data.open, ...data.upcoming].find(
+      (item) => item.installmentNumber === 1 && item.status !== "Paid"
+    );
+    if (!first) return;
+    autoPayStarted.current = true;
+    void handlePay(first.id);
+    router.replace("/dashboard-student/finance");
+  }, [payFirst, data, router]);
 
   const copyPix = async () => {
     if (!pix?.copiaCola) return;
@@ -144,6 +159,9 @@ export default function StudentFinancePage() {
       {items.map((item) => (
         <div key={item.id} className="bg-white rounded-lg shadow-md p-4">
           <p className="font-semibold text-[#163E72]">{item.courseTitle}</p>
+          {item.installmentNumber ? (
+            <p className="text-sm text-gray-500">Parcela {item.installmentNumber}</p>
+          ) : null}
           <p className="text-sm text-gray-600">{money(item.amount)}</p>
           {item.dueDate && (
             <p className="text-sm text-gray-500">
@@ -178,7 +196,7 @@ export default function StudentFinancePage() {
     <div>
       <h1 className="text-2xl font-bold text-[#163E72] mb-2">Meu financeiro</h1>
       <p className="text-gray-600 mb-6">
-        Boletos em aberto, a vencer e já pagos. O PIX é emitido pela MyCredit.
+        A 1ª parcela (R$ 69,90) é paga agora e libera o curso. As outras 11 vencem a cada 30 dias.
         Depois de pagar, clique em Já paguei ou aguarde a confirmação automática.
       </p>
       {data && (

@@ -114,7 +114,10 @@ export default function CourseDetailsPage() {
     title: string;
   } | null>(null);
 
-  const [deletingLesson, setDeletingLesson] = useState(false);  
+  const [deletingLesson, setDeletingLesson] = useState(false);
+  const [price, setPrice] = useState("0");
+  const [installmentCount, setInstallmentCount] = useState("12");
+  const [savingPrice, setSavingPrice] = useState(false);  
 
   async function loadCourse() {
     if (!id) {
@@ -129,6 +132,8 @@ export default function CourseDetailsPage() {
       );
 
       setCourse(response.data);
+      setPrice(String(response.data.price ?? 0));
+      setInstallmentCount(String(response.data.installmentCount ?? 12));
     } catch (error) {
       console.error("Erro ao carregar curso:", error);
 
@@ -142,7 +147,32 @@ export default function CourseDetailsPage() {
 
   useEffect(() => {
     loadCourse();
-  }, [id]);  
+  }, [id]);
+
+  async function savePricing() {
+    if (!course) return;
+    if (!course.teacherId) {
+      toast.error("Vincule um professor ao curso antes de salvar o preço.");
+      return;
+    }
+
+    try {
+      setSavingPrice(true);
+      const response = await api.put<CourseReadDto>(`/courses/${course.id}`, {
+        title: course.title,
+        description: course.description,
+        teacherId: course.teacherId,
+        price: Number(price.replace(",", ".")) || 0,
+        installmentCount: Number(installmentCount) || 12,
+      });
+      setCourse(response.data);
+      toast.success("Preço e parcelas atualizados. Novas inscrições usam esses valores.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Não foi possível salvar o preço."));
+    } finally {
+      setSavingPrice(false);
+    }
+  }  
 
   function openCreateModuleDialog() {
     const modules = course?.modules ?? [];
@@ -382,6 +412,43 @@ export default function CourseDetailsPage() {
             <strong>Aulas:</strong>{" "}
             {totalLessons}
           </p>
+
+          <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="coursePrice">Valor total (R$)</Label>
+              <Input
+                id="coursePrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="courseInstallments">Parcelas</Label>
+              <Input
+                id="courseInstallments"
+                type="number"
+                min="1"
+                max="24"
+                value={installmentCount}
+                onChange={(e) => setInstallmentCount(e.target.value)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Vitrine: valor total e parcelas iguais (ex. 838,80 em 12x de 69,90).
+            A 1ª parcela é na inscrição; as outras a cada 30 dias. Atraso e acréscimo se ajustam no financeiro.
+          </p>
+          <Button
+            type="button"
+            className="mt-4 bg-[#163E72] hover:bg-[#255690]"
+            disabled={savingPrice}
+            onClick={() => void savePricing()}
+          >
+            {savingPrice ? "Salvando..." : "Salvar preço"}
+          </Button>
 
         </CardContent>
       </Card>

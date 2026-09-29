@@ -32,6 +32,8 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [teacherId, setTeacherId] = useState<string>(""); // usar string para compatibilidade com Select
+  const [price, setPrice] = useState("838.80");
+  const [installmentCount, setInstallmentCount] = useState("12");
   const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
@@ -39,6 +41,8 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
       setTitle(initialData.title || "");
       setDescription(initialData.description || "");
       setTeacherId(initialData.teacherId?.toString() || "");
+      setPrice(String(initialData.price ?? 0));
+      setInstallmentCount(String(initialData.installmentCount ?? 12));
     }
   }, [initialData]);
 
@@ -62,16 +66,24 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
       return;
     }
 
+    const pricing = {
+      title,
+      description,
+      teacherId: Number(teacherId),
+      price: Number(price.replace(",", ".")) || 0,
+      installmentCount: Number(installmentCount) || 12,
+    };
+
     try {
       if (initialData) {
         const response = await api.put(
           `/courses/${initialData.id}`,
-          { id: initialData.id, title, description, teacherId: Number(teacherId) }
+          { id: initialData.id, ...pricing }
         );
         onSave(response.data);
         toast.success("Curso atualizado com sucesso!");
       } else {
-        const payload = { title, description, teacherId: Number(teacherId) };
+        const payload = pricing;
         const response = await api.post<CourseReadDto>(
           "/courses",
           payload
@@ -83,6 +95,8 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
       setTitle("");
       setDescription("");
       setTeacherId("");
+      setPrice("0");
+      setInstallmentCount("12");
     } catch (error: unknown) {
       const data = (error as { response?: { data?: unknown } }).response?.data;
       let message = "Erro ao salvar curso";
@@ -133,6 +147,34 @@ export default function CourseForm({ onSave, initialData }: CourseFormProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="price">Valor total do curso (R$)</Label>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="installments">Parcelas (PIX)</Label>
+            <Input
+              id="installments"
+              type="number"
+              min="1"
+              max="24"
+              value={installmentCount}
+              onChange={(e) => setInstallmentCount(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Ex.: R$ 838,80 em 12x de R$ 69,90. A 1ª parcela é paga na inscrição e libera o curso.
+              As demais vencem a cada 30 dias. PIX só é gerado na hora de pagar cada parcela.
+            </p>
           </div>
 
           <div>

@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { isValidCpf } from "@/utils/cpf";
+import { isValidEmailFormat } from "@/utils/email";
 
 interface StudentFormProps {
   student?: StudentDto;
@@ -69,6 +70,11 @@ export default function StudentForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!isValidEmailFormat(userEmail)) {
+      toast.error("Informe um e-mail válido.");
+      return;
+    }
 
     try {
       let response;

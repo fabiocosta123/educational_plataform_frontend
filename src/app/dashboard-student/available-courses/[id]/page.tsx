@@ -6,6 +6,7 @@ import api from "../../../services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../../../hooks/useAuth";
+import { toast } from "react-toastify";
 
 interface LessonDto {
   id: number;
@@ -94,7 +95,27 @@ export default function AvailableCourseDetailsPage() {
       <Button
         type="button"
         className="bg-[#163E72] text-white hover:bg-[#255690]"
-        onClick={() => router.push(`/courses/${course.id}/register`)}
+        onClick={async () => {
+          try {
+            await api.post("/CoursesEnrollment", {
+              userId: user.id,
+              courseId: course.id,
+            });
+            toast.success("Matrícula criada. Pague a 1ª parcela para liberar o curso.");
+            router.push("/dashboard-student/finance?payFirst=1");
+          } catch (error: unknown) {
+            const status =
+              typeof error === "object" && error && "response" in error
+                ? (error as { response?: { status?: number } }).response?.status
+                : undefined;
+            if (status === 409) {
+              router.push("/dashboard-student/finance?payFirst=1");
+              return;
+            }
+            toast.error("Não foi possível concluir a inscrição.");
+            router.push(`/courses/${course.id}/register`);
+          }
+        }}
       >
         Inscrever-se neste curso
       </Button>

@@ -135,6 +135,27 @@ export default function FinancePage() {
         }
     };
 
+    const handleUpdateAmount = async (id: number, amount: number) => {
+        if (!amount || amount <= 0) {
+            toast.error("Informe um valor maior que zero.");
+            return;
+        }
+        try {
+            await api.put(`/finance/pix/${id}/amount`, { amount });
+            const resHistory = await api.get("/finance/pix/history");
+            setSummary(resHistory.data.summary);
+            setPayments(resHistory.data.payments);
+            toast.success("Valor da mensalidade atualizado.");
+        } catch (error: unknown) {
+            const message =
+                typeof error === "object" && error && "response" in error
+                    ? (error as { response?: { data?: string | { message?: string } } }).response?.data
+                    : undefined;
+            const text = typeof message === "string" ? message : message?.message;
+            toast.error(text || "Não foi possível atualizar o valor.");
+        }
+    };
+
     const handleGeneratePix = async () => {
         try {
             await api.post("/finance/pix", formData);
@@ -289,6 +310,7 @@ export default function FinancePage() {
                 defaultRate={summary?.defaultRate ?? 0}
                 payments={payments}
                 onMarkAsPaid={openSettle}
+                onUpdateAmount={handleUpdateAmount}
                 showAll={showAll}
                 setShowAll={setShowAll}
                 statusFilter={statusFilter}
