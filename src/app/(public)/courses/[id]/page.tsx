@@ -157,9 +157,13 @@ export default function CourseDetailsPage() {
                         "pt-BR",
                         { style: "currency", currency: "BRL" }
                       )} via PIX`
+                    : null}
+                </p>
                 <p className="mt-2 text-sm text-gray-600">
                   A 1ª parcela é paga na inscrição e libera o curso. As demais vencem a cada 30 dias.
                 </p>
+              </div>
+            ) : null}
 
             {course.teacherName && (
               <div>
