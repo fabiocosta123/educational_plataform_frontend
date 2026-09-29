@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CourseReadDto, UserReadDto } from "../../../../types/interfaces";
+import axios from "axios";
 import { toast } from "react-toastify";
 import api from "@/app/services/api";
 import { Input } from "@/components/ui/input";
@@ -53,20 +54,53 @@ export default function CourseEditPage() {
     fetchTeachers();
   }, []);
 
+  useEffect(() => {
+    if (!course?.teacherId) {
+      return;
+    }
+    setTeachers((current) => {
+      if (current.some((teacher) => teacher.id === course.teacherId)) {
+        return current;
+      }
+      return [
+        {
+          id: course.teacherId,
+          userName: course.teacherName || "Professor atual",
+          userEmail: "",
+          birthDate: "",
+          role: "",
+          courseEnrolled: [],
+          coursesCreated: [],
+        },
+        ...current,
+      ];
+    });
+  }, [course, teachers.length]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const resolvedTeacherId = Number(teacherId) || course?.teacherId || 0;
+    if (!resolvedTeacherId) {
+      toast.error("Selecione um professor.");
+      return;
+    }
     try {
       await api.put(`/courses/${id}`, {
         title,
         description,
-        teacherId: Number(teacherId),
+        teacherId: resolvedTeacherId,
         price: Number(String(price).replace(",", ".")) || 0,
         installmentCount: Number(installmentCount) || 12,
       });
       toast.success("Curso atualizado com sucesso!");
       router.push(`/dashboard-coordinator/courses/${id}/details`);
-    } catch {
-      toast.error("Erro ao atualizar curso");
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message
+        : undefined;
+      toast.error(message || "Erro ao atualizar curso");
     }
   };
 

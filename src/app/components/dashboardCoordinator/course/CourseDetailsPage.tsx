@@ -161,7 +161,7 @@ export default function CourseDetailsPage() {
       const response = await api.put<CourseReadDto>(`/courses/${course.id}`, {
         title: course.title,
         description: course.description,
-        teacherId: course.teacherId,
+        teacherId: course.teacherId ?? 0,
         price: Number(price.replace(",", ".")) || 0,
         installmentCount: Number(installmentCount) || 12,
       });
