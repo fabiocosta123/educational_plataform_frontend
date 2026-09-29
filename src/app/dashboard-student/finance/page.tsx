@@ -85,11 +85,14 @@ export default function StudentFinancePage() {
       setPix(res.data);
       setPixOpen(true);
     } catch (error: unknown) {
-      const message =
+      const payload =
         typeof error === "object" && error && "response" in error
-          ? (error as { response?: { data?: string | { message?: string } } }).response?.data
+          ? (error as { response?: { data?: string | { message?: string; details?: string } } }).response?.data
           : undefined;
-      const text = typeof message === "string" ? message : message?.message;
+      const text =
+        typeof payload === "string"
+          ? payload
+          : payload?.message || payload?.details;
       toast.error(text || "Não foi possível gerar o PIX.");
     } finally {
       setPayingId(null);
