@@ -55,16 +55,17 @@ export default function CourseEditPage() {
   }, []);
 
   useEffect(() => {
-    if (!course?.teacherId) {
+    const assignedTeacherId = course?.teacherId;
+    if (!assignedTeacherId) {
       return;
     }
     setTeachers((current) => {
-      if (current.some((teacher) => teacher.id === course.teacherId)) {
+      if (current.some((teacher) => teacher.id === assignedTeacherId)) {
         return current;
       }
       return [
         {
-          id: course.teacherId,
+          id: assignedTeacherId,
           userName: course.teacherName || "Professor atual",
           userEmail: "",
           birthDate: "",
