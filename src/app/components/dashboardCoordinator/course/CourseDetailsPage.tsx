@@ -413,6 +413,10 @@ export default function CourseDetailsPage() {
             {totalLessons}
           </p>
 
+          <p className="pt-4 text-sm font-semibold text-[#163E72]">
+            Preço e parcelas
+          </p>
+
           <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
             <div>
               <Label htmlFor="coursePrice">Valor total (R$)</Label>
