@@ -59,18 +59,24 @@ export default function LoginForm() {
       return;
     }
 
+    let cancelled = false;
     const scriptId = "google-gsi-client";
+
     const initGoogle = () => {
+      if (cancelled) {
+        return false;
+      }
       const googleId = window.google?.accounts.id;
       const buttonHost = googleButtonRef.current;
       if (!googleId || !buttonHost) {
-        return;
+        return false;
       }
 
       googleId.initialize({
         client_id: googleClientId,
         ux_mode: "popup",
         context: "signin",
+        use_fedcm_for_prompt: true,
         callback: async (response) => {
           if (!response.credential) {
             toast.error("Google não retornou credencial.");
@@ -106,25 +112,46 @@ export default function LoginForm() {
         theme: "outline",
         size: "large",
       });
+      return true;
+    };
+
+    const waitForGoogle = () => {
+      if (initGoogle()) {
+        return;
+      }
+      const timer = window.setInterval(() => {
+        if (cancelled || initGoogle()) {
+          window.clearInterval(timer);
+        }
+      }, 80);
+      window.setTimeout(() => window.clearInterval(timer), 8000);
     };
 
     const existing = document.getElementById(scriptId) as HTMLScriptElement | null;
     if (window.google?.accounts?.id) {
-      initGoogle();
-      return;
+      waitForGoogle();
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (existing) {
-      existing.addEventListener("load", initGoogle);
-      return () => existing.removeEventListener("load", initGoogle);
+      existing.addEventListener("load", waitForGoogle);
+      return () => {
+        cancelled = true;
+        existing.removeEventListener("load", waitForGoogle);
+      };
     }
 
     const script = document.createElement("script");
     script.id = scriptId;
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
-    script.onload = initGoogle;
+    script.onload = waitForGoogle;
     document.head.appendChild(script);
+    return () => {
+      cancelled = true;
+    };
   }, [completeLogin, googleClientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
