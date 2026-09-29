@@ -66,7 +66,7 @@ export default function CourseEditPage() {
       return [
         {
           id: assignedTeacherId,
-          userName: course.teacherName || "Professor atual",
+          userName: course?.teacherName || "Professor atual",
           userEmail: "",
           birthDate: "",
           role: "",
