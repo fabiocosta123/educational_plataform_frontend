@@ -76,7 +76,6 @@ export default function LoginForm() {
         client_id: googleClientId,
         ux_mode: "popup",
         context: "signin",
-        use_fedcm_for_prompt: true,
         callback: async (response) => {
           if (!response.credential) {
             toast.error("Google não retornou credencial.");
