@@ -67,6 +67,11 @@ function PaymentCard({
         <p>
           <strong>Valor:</strong> {moneyBr(Number(payment.amount) || 0)}
         </p>
+        {payment.lateFeeApplied && (
+          <p className="text-amber-700">
+            Multa de atraso de R$ 10,00 já incluída (uma vez por parcela).
+          </p>
+        )}
         <p
           className={`font-semibold ${
             effectiveStatus === "Pending"

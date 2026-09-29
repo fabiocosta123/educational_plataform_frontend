@@ -190,6 +190,7 @@ export interface Payment {
   paidAt?: string;
   settledAt?: string;
   installmentNumber?: number;
+  lateFeeApplied?: boolean;
   course?: { title: string; teacher?: string };
   student?: { userName: string };
 }

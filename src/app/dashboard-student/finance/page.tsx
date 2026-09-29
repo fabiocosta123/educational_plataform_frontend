@@ -29,6 +29,8 @@ interface PaymentItem {
   courseTitle: string;
   installmentNumber?: number;
   bucket: string;
+  lateFeeApplied?: boolean;
+  accessBlocked?: boolean;
 }
 
 interface FinancePayload {
@@ -36,6 +38,9 @@ interface FinancePayload {
   open: PaymentItem[];
   upcoming: PaymentItem[];
   paid: PaymentItem[];
+  accessBlocked?: boolean;
+  blockedCourses?: string[];
+  lateFeeAmount?: number;
 }
 
 interface PixPayload {
@@ -166,6 +171,12 @@ export default function StudentFinancePage() {
             <p className="text-sm text-gray-500">Parcela {item.installmentNumber}</p>
           ) : null}
           <p className="text-sm text-gray-600">{money(item.amount)}</p>
+          {item.lateFeeApplied && item.status !== "Paid" && (
+            <p className="text-sm text-amber-700">Inclui multa de atraso (R$ 10,00, uma vez).</p>
+          )}
+          {item.accessBlocked && (
+            <p className="text-sm text-red-700">Acesso ao curso bloqueado por atraso superior a 30 dias.</p>
+          )}
           {item.dueDate && (
             <p className="text-sm text-gray-500">
               Vencimento: {new Date(item.dueDate).toLocaleDateString("pt-BR")}
@@ -199,9 +210,17 @@ export default function StudentFinancePage() {
     <div>
       <h1 className="text-2xl font-bold text-[#163E72] mb-2">Meu financeiro</h1>
       <p className="text-gray-600 mb-6">
-        A 1ª parcela (R$ 69,90) é paga agora e libera o curso. As outras 11 vencem a cada 30 dias.
-        Depois de pagar, clique em Já paguei ou aguarde a confirmação automática.
+        Mensalidade atrasada recebe acréscimo único de R$ 10,00. Com mais de 30 dias de atraso, o acesso ao curso fica bloqueado até a regularização.
       </p>
+      {data?.accessBlocked && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          Acesso bloqueado
+          {data.blockedCourses?.length
+            ? ` em: ${data.blockedCourses.join(", ")}.`
+            : "."}{" "}
+          Pague a mensalidade com mais de 30 dias de atraso para liberar o curso.
+        </div>
+      )}
       {data && (
         <>
           <section className="mb-8">

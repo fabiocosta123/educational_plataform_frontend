@@ -241,6 +241,9 @@ export default function FinancePage() {
                                             <p>Curso: {payment.course?.title}</p>
                                             <p>Professor: {payment.course?.teacher || "Não informado"}</p>
                                             <p>Valor: R$ {payment.amount ?? 0}</p>
+                                            {payment.lateFeeApplied ? (
+                                                <p className="text-amber-700">Multa de atraso (R$ 10,00) incluída.</p>
+                                            ) : null}
                                             <p
                                                 className={`font-semibold ${payment.status === "Pending"
                                                         ? "text-yellow-600"
