@@ -163,8 +163,17 @@ export default function FinancePage() {
             const resHistory = await api.get("/finance/pix/history");
             setSummary(resHistory.data.summary);
             setPayments(resHistory.data.payments);
-        } catch (error) {
-            console.error("Erro ao gerar cobrança:", error);
+            toast.success("Cobrança gerada.");
+        } catch (error: unknown) {
+            const payload =
+                typeof error === "object" && error && "response" in error
+                    ? (error as { response?: { data?: string | { message?: string; details?: string } } }).response?.data
+                    : undefined;
+            const text =
+                typeof payload === "string"
+                    ? payload
+                    : payload?.message || payload?.details;
+            toast.error(text || "Não foi possível gerar a cobrança.");
         }
     };
 
