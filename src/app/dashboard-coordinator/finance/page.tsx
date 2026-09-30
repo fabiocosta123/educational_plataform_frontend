@@ -55,6 +55,13 @@ export default function FinancePage() {
         cnpjSource?: string;
         tokenSource?: string;
         message?: string;
+        schema?: {
+            ready?: boolean;
+            applyError?: string | null;
+            missingPayments?: string[];
+            missingCourses?: string[];
+            paymentsColumns?: string[];
+        };
     } | null>(null);
 
     // 🔹 Mapeamento de status string para texto amigável
@@ -208,6 +215,18 @@ export default function FinancePage() {
                     <p className="mt-1 text-xs opacity-80">
                         {myCreditStatus.baseUrl} · CNPJ {myCreditStatus.cnpjHint} ({myCreditStatus.cnpjDigits} dígitos via {myCreditStatus.cnpjSource}) · chave via {myCreditStatus.tokenSource}
                     </p>
+                    {myCreditStatus.schema && (
+                        <p className="mt-2 text-xs">
+                            Banco Payments: {myCreditStatus.schema.ready ? "colunas OK" : "faltando colunas"}
+                            {myCreditStatus.schema.missingPayments?.length
+                                ? ` (${myCreditStatus.schema.missingPayments.join(", ")})`
+                                : ""}
+                            {myCreditStatus.schema.applyError ? ` · ALTER: ${myCreditStatus.schema.applyError}` : ""}
+                            {myCreditStatus.schema.paymentsColumns?.length
+                                ? ` · atuais: ${myCreditStatus.schema.paymentsColumns.join(", ")}`
+                                : ""}
+                        </p>
+                    )}
                 </div>
             )}
             {/* Header com barra de pesquisa e filtros */}
