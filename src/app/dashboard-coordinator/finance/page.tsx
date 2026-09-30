@@ -46,6 +46,16 @@ export default function FinancePage() {
     const [settleOpen, setSettleOpen] = useState(false);
     const [settleTarget, setSettleTarget] = useState<{ id: number; name: string } | null>(null);
     const [paidDate, setPaidDate] = useState(() => new Date().toISOString().slice(0, 10));
+    const [myCreditStatus, setMyCreditStatus] = useState<{
+        configured?: boolean;
+        tokenOk?: boolean;
+        baseUrl?: string;
+        cnpjHint?: string;
+        cnpjDigits?: number;
+        cnpjSource?: string;
+        tokenSource?: string;
+        message?: string;
+    } | null>(null);
 
     // 🔹 Mapeamento de status string para texto amigável
     const statusLabels: Record<PaymentStatus, string> = {
@@ -67,6 +77,9 @@ export default function FinancePage() {
 
                 const resCourses = await api.get("/courses");
                 setCourses(resCourses.data);
+
+                const resMyCredit = await api.get("/finance/mycredit/status");
+                setMyCreditStatus(resMyCredit.data);
             } catch (error) {
                 console.error("Erro ao carregar dados:", error);
             }
@@ -182,6 +195,21 @@ export default function FinancePage() {
 
     return (
         <div className="p-6 space-y-6">
+            {myCreditStatus && (
+                <div
+                    className={`rounded-lg border p-4 text-sm ${
+                        myCreditStatus.tokenOk
+                            ? "border-green-200 bg-green-50 text-green-800"
+                            : "border-red-200 bg-red-50 text-red-800"
+                    }`}
+                >
+                    <p className="font-semibold">MyCredit: {myCreditStatus.tokenOk ? "token OK" : "falha no token"}</p>
+                    <p>{myCreditStatus.message}</p>
+                    <p className="mt-1 text-xs opacity-80">
+                        {myCreditStatus.baseUrl} · CNPJ {myCreditStatus.cnpjHint} ({myCreditStatus.cnpjDigits} dígitos via {myCreditStatus.cnpjSource}) · chave via {myCreditStatus.tokenSource}
+                    </p>
+                </div>
+            )}
             {/* Header com barra de pesquisa e filtros */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                 <Button onClick={() => setOpenForm(true)} className="bg-[#163E72] text-white">
