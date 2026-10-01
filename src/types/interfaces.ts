@@ -191,6 +191,7 @@ export interface Payment {
   settledAt?: string;
   installmentNumber?: number;
   lateFeeApplied?: boolean;
+  pixInvoiceId?: string;
   course?: { title: string; teacher?: string };
   student?: { userName: string };
 }
@@ -213,6 +214,7 @@ export interface DashboardFinanceProps {
   payments: Payment[];
   onMarkAsPaid: (id: number, userName: string) => void;
   onUpdateAmount?: (id: number, amount: number) => void;
+  onRefundPix?: (id: number) => void;
   showAll?: boolean;
   setShowAll: (value: boolean) => void;
   statusFilter?: string;

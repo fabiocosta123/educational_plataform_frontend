@@ -40,10 +40,12 @@ function PaymentCard({
   payment,
   onMarkAsPaid,
   onUpdateAmount,
+  onRefundPix,
 }: {
   payment: Payment;
   onMarkAsPaid: (id: number, userName: string) => void;
   onUpdateAmount?: (id: number, amount: number) => void;
+  onRefundPix?: (id: number) => void;
 }) {
   const effectiveStatus = getEffectiveStatus(payment);
   const [amountDraft, setAmountDraft] = useState(String(payment.amount ?? 0));
@@ -125,6 +127,16 @@ function PaymentCard({
             Dar baixa na mensalidade
           </Button>
         )}
+        {effectiveStatus === "Paid" && payment.pixInvoiceId && onRefundPix && (
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2 w-full"
+            onClick={() => onRefundPix(payment.id)}
+          >
+            Estornar PIX (integral)
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
@@ -137,6 +149,7 @@ export default function DashboardFinance({
   payments,
   onMarkAsPaid,
   onUpdateAmount,
+  onRefundPix,
   statusFilter = "Todos",
   studentFilter = "",
 }: DashboardFinanceProps) {
@@ -250,6 +263,7 @@ export default function DashboardFinance({
                 payment={payment}
                 onMarkAsPaid={onMarkAsPaid}
                 onUpdateAmount={onUpdateAmount}
+                onRefundPix={onRefundPix}
               />
             ))}
           </div>
@@ -276,6 +290,7 @@ export default function DashboardFinance({
                 payment={payment}
                 onMarkAsPaid={onMarkAsPaid}
                 onUpdateAmount={onUpdateAmount}
+                onRefundPix={onRefundPix}
               />
                 ))}
               </div>

@@ -67,7 +67,6 @@ export default function StudentFinancePage() {
   const [pixOpen, setPixOpen] = useState(false);
   const [payingId, setPayingId] = useState<number | null>(null);
   const [checkingPix, setCheckingPix] = useState(false);
-  const [pixError, setPixError] = useState<string | null>(null);
 
   const loadFinance = () =>
     api
@@ -87,7 +86,6 @@ export default function StudentFinancePage() {
   const handlePay = async (id: number) => {
     try {
       setPayingId(id);
-      setPixError(null);
       const res = await api.post<PixPayload>(`/me/finance/${id}/pix`);
       setPix(res.data);
       setPixOpen(true);
@@ -101,7 +99,6 @@ export default function StudentFinancePage() {
           ? payload
           : payload?.message || payload?.details;
       const message = text || "Não foi possível gerar o PIX.";
-      setPixError(message);
       toast.error(message);
     } finally {
       setPayingId(null);
@@ -212,15 +209,7 @@ export default function StudentFinancePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#163E72] mb-2">Meu financeiro</h1>
-      <p className="text-gray-600 mb-6">
-        Mensalidade atrasada recebe acréscimo único de R$ 10,00. Com mais de 30 dias de atraso, o acesso ao curso fica bloqueado até a regularização.
-      </p>
-      {pixError && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          {pixError}
-        </div>
-      )}
+      <h1 className="text-2xl font-bold text-[#163E72] mb-6">Meu financeiro</h1>
       {data?.accessBlocked && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           Acesso bloqueado
