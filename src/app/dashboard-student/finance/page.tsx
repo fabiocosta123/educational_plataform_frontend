@@ -38,6 +38,7 @@ interface FinancePayload {
   open: PaymentItem[];
   upcoming: PaymentItem[];
   paid: PaymentItem[];
+  cancelled?: PaymentItem[];
   accessBlocked?: boolean;
   blockedCourses?: string[];
   lateFeeAmount?: number;
@@ -183,12 +184,12 @@ export default function StudentFinancePage() {
               Vencimento: {new Date(item.dueDate).toLocaleDateString("pt-BR")}
             </p>
           )}
-          {item.paidAt && (
+          {item.status === "Paid" && item.paidAt && (
             <p className="text-sm text-gray-500">
               Pago em: {new Date(item.paidAt).toLocaleDateString("pt-BR")}
             </p>
           )}
-          {item.settledAt && (
+          {item.status === "Paid" && item.settledAt && (
             <p className="text-sm text-gray-500">
               Baixa em: {new Date(item.settledAt).toLocaleDateString("pt-BR")}
             </p>
@@ -247,6 +248,12 @@ export default function StudentFinancePage() {
               true
             )}
           </section>
+          {(data.cancelled?.length ?? 0) > 0 && (
+            <section className="mb-8">
+              <h2 className="text-lg font-bold text-[#163E72] mb-3">Cancelados / estornados</h2>
+              {renderItems(data.cancelled ?? [], "Nenhuma cobrança cancelada.", false)}
+            </section>
+          )}
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#163E72] mb-3">Histórico de pagos</h2>
             {data.paid.length === 0 ? (

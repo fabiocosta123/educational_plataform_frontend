@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Payment, PaymentStatus, DashboardFinanceProps } from "@/types/interfaces";
 import {
   compareMonthKeysDesc,
+  getEffectivePaymentStatus,
   moneyBr,
   monthLabel,
   paymentMonthKey,
@@ -18,17 +19,8 @@ const statusLabels: Record<PaymentStatus, string> = {
   Cancelled: "Cancelado",
 };
 
-const getEffectiveStatus = (payment: Payment): PaymentStatus => {
-  if (payment.paidAt || payment.status === "Paid") return "Paid";
-  if (payment.status === "Cancelled") return "Cancelled";
-  if (payment.dueDate) {
-    const due = new Date(payment.dueDate);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays > 90) return "Cancelled";
-  }
-  return "Pending";
-};
+const getEffectiveStatus = (payment: Payment): PaymentStatus =>
+  getEffectivePaymentStatus(payment);
 
 const dueTime = (payment: Payment) => {
   if (!payment.dueDate) return Number.MAX_SAFE_INTEGER;
@@ -91,7 +83,9 @@ function PaymentCard({
         </p>
         <p>
           <strong>Data do pagamento:</strong>{" "}
-          {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString("pt-BR") : "Pendente"}
+          {effectiveStatus === "Paid" && payment.paidAt
+            ? new Date(payment.paidAt).toLocaleDateString("pt-BR")
+            : "Pendente"}
         </p>
         {payment.settledAt && (
           <p>

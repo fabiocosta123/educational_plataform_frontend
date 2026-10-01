@@ -22,6 +22,7 @@ import DashboardFinance from "@/app/components/dashboardCoordinator/finance/Dash
 import { StudentDto, Course, FinanceSummary, Payment, PaymentStatus } from "@/types/interfaces";
 import api from "../../services/api";
 import { toast } from "react-toastify";
+import { getEffectivePaymentStatus } from "@/lib/financeMonths";
 
 export default function FinancePage() {
     const [searchName, setSearchName] = useState<string>("");
@@ -271,14 +272,14 @@ export default function FinancePage() {
                                                 <p className="text-amber-700">Multa de atraso (R$ 10,00) incluída.</p>
                                             ) : null}
                                             <p
-                                                className={`font-semibold ${payment.status === "Pending"
+                                                className={`font-semibold ${getEffectivePaymentStatus(payment) === "Pending"
                                                         ? "text-yellow-600"
-                                                        : payment.status === "Paid"
+                                                        : getEffectivePaymentStatus(payment) === "Paid"
                                                             ? "text-green-600"
                                                             : "text-red-600"
                                                     }`}
                                             >
-                                                Status: {statusLabels[payment.status] ?? "Indefinido"}
+                                                Status: {statusLabels[getEffectivePaymentStatus(payment)] ?? "Indefinido"}
                                             </p>
                                             <p>
                                                 Vencimento:{" "}
@@ -288,7 +289,7 @@ export default function FinancePage() {
                                             </p>
                                             <p>
                                                 Data do pagamento:{" "}
-                                                {payment.paidAt
+                                                {getEffectivePaymentStatus(payment) === "Paid" && payment.paidAt
                                                     ? new Date(payment.paidAt).toLocaleDateString("pt-BR")
                                                     : "Pendente"}
                                             </p>
