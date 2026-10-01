@@ -12,10 +12,12 @@ export default function Header() {
       <div className="flex items-center gap-3">
         <Link href="/">
           <Image
-            src="/img/logoAnexa.png"
+            src="/logoAnexa.png"
             alt="Logo Anexa"
             width={130}
-            height={100}
+            height={70}
+            className="h-auto w-[130px] bg-transparent"
+            style={{ background: "transparent" }}
           />
         </Link>
       </div>
