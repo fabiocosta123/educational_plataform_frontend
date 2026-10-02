@@ -10,6 +10,7 @@ import { BackLink } from "../../../components/AppLinks";
 interface Question {
   id: number;
   prompt: string;
+  questionType?: string;
   options: { id: number; text: string }[];
 }
 
