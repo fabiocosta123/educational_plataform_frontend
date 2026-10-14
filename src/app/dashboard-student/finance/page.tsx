@@ -95,12 +95,12 @@ export default function StudentFinancePage() {
         typeof error === "object" && error && "response" in error
           ? (error as { response?: { data?: string | { message?: string; details?: string } } }).response?.data
           : undefined;
-      const text =
-        typeof payload === "string"
-          ? payload
-          : payload?.message || payload?.details;
-      const message = text || "Não foi possível gerar o PIX.";
-      toast.error(message);
+      if (payload && typeof payload === "object") {
+        console.error("Falha ao gerar PIX:", payload);
+      } else if (typeof payload === "string") {
+        console.error("Falha ao gerar PIX:", payload);
+      }
+      toast.error("Não foi possível gerar o PIX. Tente de novo em alguns instantes.");
     } finally {
       setPayingId(null);
     }

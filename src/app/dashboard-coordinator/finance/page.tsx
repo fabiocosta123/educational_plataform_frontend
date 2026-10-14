@@ -170,6 +170,7 @@ export default function FinancePage() {
                     ? (error as { response?: { data?: string | { message?: string } } }).response?.data
                     : undefined;
             const text = typeof payload === "string" ? payload : payload?.message;
+            console.error("Falha ao estornar PIX:", payload ?? error);
             toast.error(text || "Não foi possível estornar o PIX.");
         }
     };
@@ -190,7 +191,8 @@ export default function FinancePage() {
             const text =
                 typeof payload === "string"
                     ? payload
-                    : payload?.message || payload?.details;
+                    : payload?.message;
+            console.error("Falha ao gerar cobrança:", payload ?? error);
             toast.error(text || "Não foi possível gerar a cobrança.");
         }
     };
