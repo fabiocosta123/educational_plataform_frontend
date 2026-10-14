@@ -27,6 +27,10 @@ function getRegisterErrorMessage(error: unknown, fallback: string) {
   if (data && typeof data === "object") {
     const payload = data as Record<string, unknown>;
 
+    if (typeof payload.details === "string" && payload.details.trim()) {
+      return payload.details;
+    }
+
     if (typeof payload.message === "string" && payload.message.trim()) {
       return payload.message;
     }

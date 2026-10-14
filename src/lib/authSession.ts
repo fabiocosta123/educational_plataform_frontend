@@ -8,6 +8,9 @@ const ROLE = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
 
 export function persistSessionToken(token: string) {
   localStorage.setItem("token", token);
+  sessionStorage.setItem("anexa-continue-token", token);
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `token=${encodeURIComponent(token)}; Path=/; Max-Age=${60 * 60 * 4}; SameSite=Lax${secure}`;
   Cookies.set("token", token, {
     expires: 4 / 24,
     path: "/",
