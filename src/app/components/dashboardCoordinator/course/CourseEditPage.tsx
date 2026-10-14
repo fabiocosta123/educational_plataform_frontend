@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CourseReadDto, UserReadDto } from "../../../../types/interfaces";
+import axios from "axios";
 import { toast } from "react-toastify";
 import api from "@/app/services/api";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,8 @@ export default function CourseEditPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [teacherId, setTeacherId] = useState<string>("");
+  const [price, setPrice] = useState("838.80");
+  const [installmentCount, setInstallmentCount] = useState("12");
   const [teachers, setTeachers] = useState<UserReadDto[]>([]);
 
   useEffect(() => {
@@ -30,6 +33,8 @@ export default function CourseEditPage() {
         setTitle(res.data.title ?? "");
         setDescription(res.data.description ?? "");
         setTeacherId(res.data.teacherId?.toString() ?? "");
+        setPrice(String(res.data.price ?? 838.8));
+        setInstallmentCount(String(res.data.installmentCount ?? 12));
       } catch {
         toast.error("Erro ao carregar curso");
       }
@@ -49,18 +54,54 @@ export default function CourseEditPage() {
     fetchTeachers();
   }, []);
 
+  useEffect(() => {
+    const assignedTeacherId = course?.teacherId;
+    if (!assignedTeacherId) {
+      return;
+    }
+    setTeachers((current) => {
+      if (current.some((teacher) => teacher.id === assignedTeacherId)) {
+        return current;
+      }
+      return [
+        {
+          id: assignedTeacherId,
+          userName: course?.teacherName || "Professor atual",
+          userEmail: "",
+          birthDate: "",
+          role: "",
+          courseEnrolled: [],
+          coursesCreated: [],
+        },
+        ...current,
+      ];
+    });
+  }, [course, teachers.length]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const resolvedTeacherId = Number(teacherId) || course?.teacherId || 0;
+    if (!resolvedTeacherId) {
+      toast.error("Selecione um professor.");
+      return;
+    }
     try {
       await api.put(`/courses/${id}`, {
         title,
         description,
-        teacherId: Number(teacherId),
+        teacherId: resolvedTeacherId,
+        price: Number(String(price).replace(",", ".")) || 0,
+        installmentCount: Number(installmentCount) || 12,
       });
       toast.success("Curso atualizado com sucesso!");
       router.push(`/dashboard-coordinator/courses/${id}/details`);
-    } catch {
-      toast.error("Erro ao atualizar curso");
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message
+        : undefined;
+      toast.error(message || "Erro ao atualizar curso");
     }
   };
 
@@ -97,6 +138,31 @@ export default function CourseEditPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label htmlFor="edit-price">Valor total do curso (R$)</Label>
+            <Input
+              id="edit-price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit-installments">Parcelas (PIX)</Label>
+            <Input
+              id="edit-installments"
+              type="number"
+              min="1"
+              max="24"
+              value={installmentCount}
+              onChange={(e) => setInstallmentCount(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Ex.: 838,80 em 12x de 69,90. A 1ª parcela é na inscrição; as outras a cada 30 dias.
+            </p>
           </div>
           <Button type="submit" className="bg-[#163E72]">Salvar</Button>
         </form>

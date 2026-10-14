@@ -61,17 +61,14 @@ export default function LessonList({ lessons: propLessons }: LessonListProps) {
             )}
 
             {lesson.videoUrl && (
-              <span className="block text-sm text-[#66BCA1] mt-1">
-                Vídeo:{" "}
-                <a
-                  href={lesson.videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-[#255690]"
-                >
-                  Assistir
-                </a>
-              </span>
+              <a
+                href={lesson.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center rounded-lg border border-[#338B97] px-3 py-1.5 text-sm font-medium text-[#338B97] hover:bg-[#338B97]/10"
+              >
+                Assistir vídeo
+              </a>
             )}
 
             {lesson.pdfMaterial && (

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
@@ -27,7 +27,10 @@ interface PaymentItem {
   paidAt?: string;
   settledAt?: string;
   courseTitle: string;
+  installmentNumber?: number;
   bucket: string;
+  lateFeeApplied?: boolean;
+  accessBlocked?: boolean;
 }
 
 interface FinancePayload {
@@ -35,6 +38,10 @@ interface FinancePayload {
   open: PaymentItem[];
   upcoming: PaymentItem[];
   paid: PaymentItem[];
+  cancelled?: PaymentItem[];
+  accessBlocked?: boolean;
+  blockedCourses?: string[];
+  lateFeeAmount?: number;
 }
 
 interface PixPayload {
@@ -45,6 +52,7 @@ interface PixPayload {
   copiaCola: string;
   provider: string;
   message: string;
+  expiresAt?: string;
 }
 
 const money = moneyBr;
@@ -52,10 +60,14 @@ const money = moneyBr;
 export default function StudentFinancePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const payFirst = searchParams.get("payFirst") === "1";
+  const autoPayStarted = useRef(false);
   const [data, setData] = useState<FinancePayload | null>(null);
   const [pix, setPix] = useState<PixPayload | null>(null);
   const [pixOpen, setPixOpen] = useState(false);
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [checkingPix, setCheckingPix] = useState(false);
 
   const loadFinance = () =>
     api
@@ -79,16 +91,31 @@ export default function StudentFinancePage() {
       setPix(res.data);
       setPixOpen(true);
     } catch (error: unknown) {
-      const message =
+      const payload =
         typeof error === "object" && error && "response" in error
-          ? (error as { response?: { data?: string | { message?: string } } }).response?.data
+          ? (error as { response?: { data?: string | { message?: string; details?: string } } }).response?.data
           : undefined;
-      const text = typeof message === "string" ? message : message?.message;
-      toast.error(text || "Não foi possível gerar o PIX.");
+      const text =
+        typeof payload === "string"
+          ? payload
+          : payload?.message || payload?.details;
+      const message = text || "Não foi possível gerar o PIX.";
+      toast.error(message);
     } finally {
       setPayingId(null);
     }
   };
+
+  useEffect(() => {
+    if (!payFirst || !data || autoPayStarted.current) return;
+    const first = [...data.overdue, ...data.open, ...data.upcoming].find(
+      (item) => item.installmentNumber === 1 && item.status !== "Paid"
+    );
+    if (!first) return;
+    autoPayStarted.current = true;
+    void handlePay(first.id);
+    router.replace("/dashboard-student/finance");
+  }, [payFirst, data, router]);
 
   const copyPix = async () => {
     if (!pix?.copiaCola) return;
@@ -100,6 +127,40 @@ export default function StudentFinancePage() {
     }
   };
 
+  const checkPixPaid = async (showWaiting: boolean) => {
+    if (!pix?.paymentId) return;
+    try {
+      setCheckingPix(true);
+      const res = await api.post<{ paid: boolean; message?: string }>(
+        `/me/finance/${pix.paymentId}/pix/status`
+      );
+      if (res.data.paid) {
+        toast.success(res.data.message || "Pagamento confirmado.");
+        setPixOpen(false);
+        setPix(null);
+        await loadFinance();
+        return;
+      }
+      if (showWaiting) {
+        toast.info(res.data.message || "Ainda não identificamos o pagamento.");
+      }
+    } catch {
+      if (showWaiting) {
+        toast.error("Não foi possível consultar o PIX.");
+      }
+    } finally {
+      setCheckingPix(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!pixOpen || !pix?.paymentId) return;
+    const timer = window.setInterval(() => {
+      void checkPixPaid(false);
+    }, 8000);
+    return () => window.clearInterval(timer);
+  }, [pixOpen, pix?.paymentId]);
+
   if (loading || !user) return <p>Carregando...</p>;
 
   const renderItems = (items: PaymentItem[], empty: string, canPay: boolean) => (
@@ -108,18 +169,27 @@ export default function StudentFinancePage() {
       {items.map((item) => (
         <div key={item.id} className="bg-white rounded-lg shadow-md p-4">
           <p className="font-semibold text-[#163E72]">{item.courseTitle}</p>
+          {item.installmentNumber ? (
+            <p className="text-sm text-gray-500">Parcela {item.installmentNumber}</p>
+          ) : null}
           <p className="text-sm text-gray-600">{money(item.amount)}</p>
+          {item.lateFeeApplied && item.status !== "Paid" && (
+            <p className="text-sm text-amber-700">Inclui multa de atraso (R$ 10,00, uma vez).</p>
+          )}
+          {item.accessBlocked && (
+            <p className="text-sm text-red-700">Acesso ao curso bloqueado por atraso superior a 30 dias.</p>
+          )}
           {item.dueDate && (
             <p className="text-sm text-gray-500">
               Vencimento: {new Date(item.dueDate).toLocaleDateString("pt-BR")}
             </p>
           )}
-          {item.paidAt && (
+          {item.status === "Paid" && item.paidAt && (
             <p className="text-sm text-gray-500">
               Pago em: {new Date(item.paidAt).toLocaleDateString("pt-BR")}
             </p>
           )}
-          {item.settledAt && (
+          {item.status === "Paid" && item.settledAt && (
             <p className="text-sm text-gray-500">
               Baixa em: {new Date(item.settledAt).toLocaleDateString("pt-BR")}
             </p>
@@ -140,11 +210,16 @@ export default function StudentFinancePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#163E72] mb-2">Meu financeiro</h1>
-      <p className="text-gray-600 mb-6">
-        Boletos em aberto, a vencer e já pagos. O PIX provisório gera QR Code e copia e cola;
-        a baixa automática completa quando a MyCredit confirmar o pagamento.
-      </p>
+      <h1 className="text-2xl font-bold text-[#163E72] mb-6">Meu financeiro</h1>
+      {data?.accessBlocked && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          Acesso bloqueado
+          {data.blockedCourses?.length
+            ? ` em: ${data.blockedCourses.join(", ")}.`
+            : "."}{" "}
+          Pague a mensalidade com mais de 30 dias de atraso para liberar o curso.
+        </div>
+      )}
       {data && (
         <>
           <section className="mb-8">
@@ -173,6 +248,12 @@ export default function StudentFinancePage() {
               true
             )}
           </section>
+          {(data.cancelled?.length ?? 0) > 0 && (
+            <section className="mb-8">
+              <h2 className="text-lg font-bold text-[#163E72] mb-3">Cancelados / estornados</h2>
+              {renderItems(data.cancelled ?? [], "Nenhuma cobrança cancelada.", false)}
+            </section>
+          )}
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#163E72] mb-3">Histórico de pagos</h2>
             {data.paid.length === 0 ? (
@@ -220,6 +301,15 @@ export default function StudentFinancePage() {
                 className="w-full bg-[#163E72] hover:bg-[#255690] text-white"
               >
                 Copiar PIX
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={checkingPix}
+                onClick={() => void checkPixPaid(true)}
+                className="w-full"
+              >
+                {checkingPix ? "Consultando..." : "Já paguei"}
               </Button>
               <p className="text-xs text-muted-foreground">{pix.message}</p>
             </div>

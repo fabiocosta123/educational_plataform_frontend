@@ -1,15 +1,15 @@
 "use client";
 
-
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { dashboardPath } from "../../lib/dashboardPath";
 import api from "../../services/api";
-
+import { BackLink, textNavClass } from "../AppLinks";
 
 export interface JwtPayload {
   nameid: string;
@@ -22,9 +22,136 @@ export default function LoginForm() {
   const router = useRouter();
   const { setUser } = useAuth();
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const isPasswordValid = password.length >= 6;
   const [login, setLogin] = useState("");
   const [loading, setLoading] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+  const completeLogin = useCallback(
+    (token: string) => {
+      localStorage.setItem("token", token);
+      const decoded = jwtDecode<JwtPayload>(token);
+
+      setUser({
+        id: parseInt(decoded.nameid, 10),
+        name: decoded.unique_name,
+        role: decoded.role,
+        profile: parseInt(decoded.profile, 10),
+      });
+
+      toast.success("Login bem-sucedido!");
+      setLogin("");
+      setPassword("");
+      router.push(
+        dashboardPath({
+          role: decoded.role,
+          profile: parseInt(decoded.profile, 10),
+        })
+      );
+    },
+    [router, setUser]
+  );
+
+  useEffect(() => {
+    if (!googleClientId) {
+      return;
+    }
+
+    let cancelled = false;
+    const scriptId = "google-gsi-client";
+
+    const initGoogle = () => {
+      if (cancelled) {
+        return false;
+      }
+      const googleId = window.google?.accounts.id;
+      const buttonHost = googleButtonRef.current;
+      if (!googleId || !buttonHost) {
+        return false;
+      }
+
+      googleId.initialize({
+        client_id: googleClientId,
+        ux_mode: "popup",
+        context: "signin",
+        callback: async (response) => {
+          if (!response.credential) {
+            toast.error("Google não retornou credencial.");
+            return;
+          }
+
+          try {
+            setLoading(true);
+            const { data } = await api.post("/Auth/google-login", {
+              idToken: response.credential,
+            });
+            completeLogin(data.token);
+          } catch (err: unknown) {
+            const axiosErr = err as {
+              response?: { data?: string | { message?: string; title?: string } };
+            };
+            const data = axiosErr.response?.data;
+            const message =
+              (typeof data === "string" && data) ||
+              (typeof data === "object" && (data?.message || data?.title)) ||
+              "Erro ao entrar com Google";
+            toast.error(message);
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+
+      buttonHost.innerHTML = "";
+      googleId.renderButton(buttonHost, {
+        type: "icon",
+        shape: "circle",
+        theme: "outline",
+        size: "large",
+      });
+      return true;
+    };
+
+    const waitForGoogle = () => {
+      if (initGoogle()) {
+        return;
+      }
+      const timer = window.setInterval(() => {
+        if (cancelled || initGoogle()) {
+          window.clearInterval(timer);
+        }
+      }, 80);
+      window.setTimeout(() => window.clearInterval(timer), 8000);
+    };
+
+    const existing = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (window.google?.accounts?.id) {
+      waitForGoogle();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (existing) {
+      existing.addEventListener("load", waitForGoogle);
+      return () => {
+        cancelled = true;
+        existing.removeEventListener("load", waitForGoogle);
+      };
+    }
+
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = waitForGoogle;
+    document.head.appendChild(script);
+    return () => {
+      cancelled = true;
+    };
+  }, [completeLogin, googleClientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,52 +162,24 @@ export default function LoginForm() {
         password: password,
       });
 
-      const token = response.data.token;
-
-      localStorage.setItem("token", token)
-      
-      const decoded = jwtDecode<JwtPayload>(token);
-
-      setUser({
-        id: parseInt(decoded.nameid),
-        name: decoded.unique_name,
-        role: decoded.role,
-        profile: parseInt(decoded.profile)
-      })
-
-      toast.success("Login bem-sucedido!");
-      setLogin("");
-      setPassword("");
-
-      router.push(
-        dashboardPath({
-          role: decoded.role,
-          profile: parseInt(decoded.profile),
-        })
-      );
-
-    } catch (err: any) {
-      const data = err.response?.data;
+      completeLogin(response.data.token);
+    } catch (err: unknown) {
+      const axiosErr = err as {
+        response?: { data?: string | { message?: string; title?: string } };
+      };
+      const data = axiosErr.response?.data;
       const message =
         (typeof data === "string" && data) ||
-        data?.message ||
-        data?.title ||
+        (typeof data === "object" && (data?.message || data?.title)) ||
         "Erro ao fazer login";
       toast.error(message);
     } finally {
       setLoading(false);
     }
-
   };
-
-  const handleGoogleLogin = () => {
-    //chamada para API de login com Google
-    console.log("Login com Google");
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 w-80">
-      {/*Email */}
       <input
         type="email"
         placeholder="Email"
@@ -90,17 +189,25 @@ export default function LoginForm() {
           }`}
       />
 
-      {/*Senha */}
-      <input
-        type="password"
-        placeholder="Senha"
-        value={password}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-        className={`w-full border p-2 rounded ${password.length === 0 ? "" : isPasswordValid ? "border-green-500" : "border-red-500"
-          }`}
-      />
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="Senha"
+          value={password}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+          className={`w-full border p-2 rounded pr-10 ${password.length === 0 ? "" : isPasswordValid ? "border-green-500" : "border-red-500"
+            }`}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((visible) => !visible)}
+          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800"
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
 
-      {/* botçao login */}
       <button
         type="submit"
         disabled={!isPasswordValid || loading}
@@ -110,23 +217,21 @@ export default function LoginForm() {
         {loading ? "Entrando" : "Login"}
       </button>
 
-      {/* Botão para login com Google */}
-      <button type="button" onClick={handleGoogleLogin} className="w-full bg-[#DB4437] text-white p-2 rounded hover:bg-[#A33224]">
-        Entrar com Google
-      </button>
-
-      {/*Esqueci minha senha */}
-      <div className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
-        Esqueci minha senha
+      <div className="flex flex-col items-center gap-2">
+        {googleClientId ? (
+          <div ref={googleButtonRef} className="flex min-h-10 min-w-10 justify-center" />
+        ) : (
+          <p className="text-center text-xs text-gray-500">
+            Login Google não configurado.
+          </p>
+        )}
       </div>
 
-      <Link
-        href="/"
-        className="text-sm text-center text-gray-600 cursor-pointer hover:text-gray-800">
-        Voltar
+      <Link href="/forgot-password" className={`${textNavClass} w-full`}>
+        Esqueci minha senha
       </Link>
 
-
+      <BackLink href="/">Voltar</BackLink>
     </form>
   );
 }

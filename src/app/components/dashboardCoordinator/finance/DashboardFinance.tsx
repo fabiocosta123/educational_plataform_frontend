@@ -3,9 +3,11 @@
 import { useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Payment, PaymentStatus, DashboardFinanceProps } from "@/types/interfaces";
 import {
   compareMonthKeysDesc,
+  getEffectivePaymentStatus,
   moneyBr,
   monthLabel,
   paymentMonthKey,
@@ -17,17 +19,8 @@ const statusLabels: Record<PaymentStatus, string> = {
   Cancelled: "Cancelado",
 };
 
-const getEffectiveStatus = (payment: Payment): PaymentStatus => {
-  if (payment.paidAt || payment.status === "Paid") return "Paid";
-  if (payment.status === "Cancelled") return "Cancelled";
-  if (payment.dueDate) {
-    const due = new Date(payment.dueDate);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays > 90) return "Cancelled";
-  }
-  return "Pending";
-};
+const getEffectiveStatus = (payment: Payment): PaymentStatus =>
+  getEffectivePaymentStatus(payment);
 
 const dueTime = (payment: Payment) => {
   if (!payment.dueDate) return Number.MAX_SAFE_INTEGER;
@@ -38,11 +31,17 @@ const dueTime = (payment: Payment) => {
 function PaymentCard({
   payment,
   onMarkAsPaid,
+  onUpdateAmount,
+  onRefundPix,
 }: {
   payment: Payment;
   onMarkAsPaid: (id: number, userName: string) => void;
+  onUpdateAmount?: (id: number, amount: number) => void;
+  onRefundPix?: (id: number) => void;
 }) {
   const effectiveStatus = getEffectiveStatus(payment);
+  const [amountDraft, setAmountDraft] = useState(String(payment.amount ?? 0));
+
   return (
     <Card className="flex flex-col justify-between rounded-lg border shadow-sm">
       <CardHeader>
@@ -51,12 +50,22 @@ function PaymentCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
+        {payment.installmentNumber ? (
+          <p>
+            <strong>Parcela:</strong> {payment.installmentNumber}
+          </p>
+        ) : null}
         <p>
           <strong>Professor:</strong> {payment.course?.teacher || "Não informado"}
         </p>
         <p>
           <strong>Valor:</strong> {moneyBr(Number(payment.amount) || 0)}
         </p>
+        {payment.lateFeeApplied && (
+          <p className="text-amber-700">
+            Multa de atraso de R$ 10,00 já incluída (uma vez por parcela).
+          </p>
+        )}
         <p
           className={`font-semibold ${
             effectiveStatus === "Pending"
@@ -74,12 +83,35 @@ function PaymentCard({
         </p>
         <p>
           <strong>Data do pagamento:</strong>{" "}
-          {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString("pt-BR") : "Pendente"}
+          {effectiveStatus === "Paid" && payment.paidAt
+            ? new Date(payment.paidAt).toLocaleDateString("pt-BR")
+            : "Pendente"}
         </p>
         {payment.settledAt && (
           <p>
             <strong>Data da baixa:</strong> {new Date(payment.settledAt).toLocaleDateString("pt-BR")}
           </p>
+        )}
+        {effectiveStatus === "Pending" && onUpdateAmount && (
+          <div className="space-y-2 pt-2">
+            <Input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={amountDraft}
+              onChange={(e) => setAmountDraft(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() =>
+                onUpdateAmount(payment.id, Number(amountDraft.replace(",", ".")) || 0)
+              }
+            >
+              Atualizar valor (atraso / acréscimo)
+            </Button>
+          </div>
         )}
         {effectiveStatus === "Pending" && (
           <Button
@@ -87,6 +119,16 @@ function PaymentCard({
             onClick={() => onMarkAsPaid(payment.id, payment.student?.userName || "")}
           >
             Dar baixa na mensalidade
+          </Button>
+        )}
+        {effectiveStatus === "Paid" && payment.pixInvoiceId && onRefundPix && (
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2 w-full"
+            onClick={() => onRefundPix(payment.id)}
+          >
+            Estornar PIX (integral)
           </Button>
         )}
       </CardContent>
@@ -100,6 +142,8 @@ export default function DashboardFinance({
   defaultRate,
   payments,
   onMarkAsPaid,
+  onUpdateAmount,
+  onRefundPix,
   statusFilter = "Todos",
   studentFilter = "",
 }: DashboardFinanceProps) {
@@ -208,7 +252,13 @@ export default function DashboardFinance({
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {openPayments.map((payment) => (
-              <PaymentCard key={payment.id} payment={payment} onMarkAsPaid={onMarkAsPaid} />
+              <PaymentCard
+                key={payment.id}
+                payment={payment}
+                onMarkAsPaid={onMarkAsPaid}
+                onUpdateAmount={onUpdateAmount}
+                onRefundPix={onRefundPix}
+              />
             ))}
           </div>
         )}
@@ -229,7 +279,13 @@ export default function DashboardFinance({
               </div>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {group.items.map((payment) => (
-                  <PaymentCard key={payment.id} payment={payment} onMarkAsPaid={onMarkAsPaid} />
+                  <PaymentCard
+                key={payment.id}
+                payment={payment}
+                onMarkAsPaid={onMarkAsPaid}
+                onUpdateAmount={onUpdateAmount}
+                onRefundPix={onRefundPix}
+              />
                 ))}
               </div>
             </div>

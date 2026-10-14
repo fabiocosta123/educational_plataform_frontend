@@ -26,9 +26,14 @@ export default function ModuleCard({ module, courseId, setCourses }: any) {
       <p className="text-gray-600">{module.description}</p>
 
       {module.videoUrl && (
-        <p className="text-sm text-[#66BCA1] mt-2">
-          Vídeo: <a href={module.videoUrl}>{module.videoUrl}</a>
-        </p>
+        <a
+          href={module.videoUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 inline-flex items-center rounded-lg border border-[#338B97] px-3 py-1.5 text-sm font-medium text-[#338B97] hover:bg-[#338B97]/10"
+        >
+          Assistir vídeo
+        </a>
       )}
       {module.pdfMaterial && (
         <p className="text-sm text-gray-500 mt-2">Material: {module.pdfMaterial}</p>

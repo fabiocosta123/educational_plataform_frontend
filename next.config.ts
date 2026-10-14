@@ -58,6 +58,23 @@ const withPwa = require("next-pwa")({
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "unsafe-none",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withPwa(nextConfig);

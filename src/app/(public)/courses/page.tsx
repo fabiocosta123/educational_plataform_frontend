@@ -18,6 +18,9 @@ interface CourseDto {
   id: number;
   title: string;
   description: string;
+  price?: number;
+  installmentCount?: number;
+  installmentAmount?: number;
 }
 
 export default function CoursePage() {
@@ -107,6 +110,20 @@ export default function CoursePage() {
                   <p className="line-clamp-4 text-sm leading-6 text-gray-600 sm:text-base">
                     {course.description || "Descrição não informada."}
                   </p>
+                  {course.price && course.price > 0 ? (
+                    <p className="mt-4 text-sm font-semibold text-[#163E72]">
+                      {course.price.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                      {course.installmentCount && course.installmentAmount
+                        ? ` em ${course.installmentCount}x de ${course.installmentAmount.toLocaleString(
+                            "pt-BR",
+                            { style: "currency", currency: "BRL" }
+                          )}`
+                        : null}
+                    </p>
+                  ) : null}
                 </CardContent>
 
                 <CardFooter className="flex flex-col gap-3 sm:flex-row">

@@ -23,7 +23,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-import { toast } from "sonner";
+import { toast } from "react-toastify";
+import MaterialOpenLink from "@/app/components/MaterialOpenLink";
 
 export default function EditLessonPage() {
   const router = useRouter();
@@ -58,6 +59,9 @@ export default function EditLessonPage() {
     useState(true);
 
   const [saving, setSaving] =
+    useState(false);
+
+  const [uploadingMaterial, setUploadingMaterial] =
     useState(false);
 
   const [error, setError] =
@@ -300,7 +304,7 @@ export default function EditLessonPage() {
           `/dashboard-coordinator/courses/${course.id}/details`
         );
       } else {
-        router.back();
+        router.push("/dashboard-coordinator/courses");
       }
 
     } catch (err) {
@@ -314,6 +318,45 @@ export default function EditLessonPage() {
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  function goBackToCourse() {
+    if (course?.id) {
+      router.push(
+        `/dashboard-coordinator/courses/${course.id}/details`
+      );
+      return;
+    }
+
+    router.push("/dashboard-coordinator/courses");
+  }
+
+  async function handleReplaceMaterial(file: File | undefined) {
+    if (!file || !lessonId) {
+      return;
+    }
+
+    try {
+      setUploadingMaterial(true);
+      setError("");
+      const formData = new FormData();
+      formData.append("material", file);
+      const response = await api.put<{ id: number; pdfUrl: string }>(
+        `/Lessons/${lessonId}/material`,
+        formData
+      );
+      setLesson((current) =>
+        current
+          ? { ...current, pdfUrl: response.data.pdfUrl }
+          : current
+      );
+      toast.success("Material atualizado.");
+    } catch {
+      setError("Não foi possível enviar o material. Use PDF ou TXT de até 10 MB.");
+      toast.error("Não foi possível enviar o material.");
+    } finally {
+      setUploadingMaterial(false);
     }
   }
 
@@ -356,9 +399,7 @@ export default function EditLessonPage() {
               type="button"
               variant="outline"
               className="mt-4"
-              onClick={() =>
-                router.back()
-              }
+              onClick={goBackToCourse}
             >
               Voltar
             </Button>
@@ -635,21 +676,42 @@ export default function EditLessonPage() {
               MATERIAL
           ==================================================== */}
 
-          {lesson.pdfUrl && (
-
-            <div className="rounded-md bg-muted p-4">
-
-              <p className="text-sm font-medium">
-                Material atual
+          <div className="space-y-3 rounded-xl border border-[#338B97]/20 bg-[#338B97]/5 p-4">
+            <div>
+              <p className="text-sm font-semibold text-[#163E72]">
+                Material da aula (PDF ou TXT)
               </p>
-
-              <p className="text-sm text-muted-foreground mt-1">
-                O material atual continuará associado à aula.
+              <p className="mt-1 text-sm text-gray-600">
+                {lesson.pdfUrl
+                  ? "Troque o arquivo se o material atual estiver errado."
+                  : "Esta aula ainda não tem material. Envie um PDF ou TXT de até 10 MB."}
               </p>
-
             </div>
 
-          )}
+            {lesson.pdfUrl ? (
+              <MaterialOpenLink pdfUrl={lesson.pdfUrl} label="Abrir material atual" />
+            ) : null}
+
+            <div className="space-y-2">
+              <Label htmlFor="lesson-material">
+                {lesson.pdfUrl ? "Substituir material" : "Enviar material"}
+              </Label>
+              <Input
+                id="lesson-material"
+                type="file"
+                accept=".pdf,.txt,application/pdf,text/plain"
+                disabled={saving || uploadingMaterial}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  void handleReplaceMaterial(file);
+                  event.target.value = "";
+                }}
+              />
+              {uploadingMaterial && (
+                <p className="text-sm text-gray-500">Enviando material...</p>
+              )}
+            </div>
+          </div>
 
           {/* ====================================================
               BOTÕES
@@ -660,16 +722,8 @@ export default function EditLessonPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                if (course?.id) {
-                  router.push(
-                    `/dashboard-coordinator/courses/${course.id}`
-                  );
-                } else {
-                  router.back();
-                }
-              }}
-              disabled={saving}
+              onClick={goBackToCourse}
+              disabled={saving || uploadingMaterial}
             >
               Cancelar
             </Button>

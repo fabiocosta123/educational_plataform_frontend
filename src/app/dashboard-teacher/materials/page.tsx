@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
-import api, { API_BASE_URL } from "../../services/api";
+import api from "../../services/api";
 import type { CourseReadDto, LessonReadDto } from "../../../types/interfaces";
+import MaterialOpenLink from "../../components/MaterialOpenLink";
 
 interface MaterialRow {
   courseTitle: string;
@@ -78,14 +79,7 @@ export default function TeacherMaterialsPage() {
                 {courseTitle} · {moduleName}
               </p>
               {lesson.pdfUrl ? (
-                <a
-                  href={`${API_BASE_URL}${lesson.pdfUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm text-[#338B97] underline"
-                >
-                  Abrir material atual
-                </a>
+                <MaterialOpenLink pdfUrl={lesson.pdfUrl} label="Abrir material atual" />
               ) : (
                 <p className="text-sm text-amber-700">Sem material anexado.</p>
               )}

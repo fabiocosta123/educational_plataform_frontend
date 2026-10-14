@@ -5,23 +5,19 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../../../hooks/useAuth";
-import api, { API_BASE_URL } from "../../../../../services/api";
+import api from "../../../../../services/api";
 import { LessonReadDto } from "../../../../../../types/interfaces";
 import RestrictedYouTubePlayer, {
   extractYouTubeId,
 } from "../../../../../components/dashboardStudent/RestrictedYouTubePlayer";
+import MaterialOpenLink from "../../../../../components/MaterialOpenLink";
+import { BackLink } from "../../../../../components/AppLinks";
 
 interface ProgressItem {
   lessonId: number;
   completed: boolean;
   lastWatchedSecond?: number;
   maxWatchedSecond?: number;
-}
-
-function materialUrl(pdfUrl?: string) {
-  if (!pdfUrl) return "";
-  if (pdfUrl.startsWith("http")) return pdfUrl;
-  return `${API_BASE_URL}${pdfUrl.startsWith("/") ? "" : "/"}${pdfUrl}`;
 }
 
 function NativeLessonVideo({
@@ -166,13 +162,10 @@ export default function StudentLessonPage() {
   if (loading || !user || !lesson) return <p className="text-gray-600">Carregando...</p>;
 
   const youtubeId = extractYouTubeId(lesson.videoUrl);
-  const pdf = materialUrl(lesson.pdfUrl);
 
   return (
     <div>
-      <Link href={`/dashboard-student/courses/${courseId}`} className="text-[#338B97] text-sm">
-        ← Voltar ao curso
-      </Link>
+      <BackLink href={`/dashboard-student/courses/${courseId}`}>Voltar ao curso</BackLink>
       <h1 className="text-2xl font-bold text-[#163E72] mt-2 mb-2">{lesson.title}</h1>
       {lesson.description && <p className="text-gray-600 mb-4">{lesson.description}</p>}
 
@@ -187,11 +180,7 @@ export default function StudentLessonPage() {
         <NativeLessonVideo startAt={startAt} maxWatched={maxWatched} src={lesson.videoUrl} onProgress={handleProgress} />
       ) : null}
 
-      {pdf && (
-        <a href={pdf} target="_blank" rel="noreferrer" className="inline-block mb-4 text-[#338B97] underline">
-          Abrir material (PDF)
-        </a>
-      )}
+      <MaterialOpenLink pdfUrl={lesson.pdfUrl} />
 
       <p className="text-sm text-gray-500 mb-3">
         {completed

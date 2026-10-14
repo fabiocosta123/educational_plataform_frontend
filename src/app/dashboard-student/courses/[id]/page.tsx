@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../../hooks/useAuth";
 import api from "../../../services/api";
 import { CourseModuleReadDto, LessonReadDto } from "../../../../types/interfaces";
+import { BackLink } from "../../../components/AppLinks";
 
 interface ProgressItem {
   lessonId: number;
@@ -71,9 +72,7 @@ export default function StudentCoursePage() {
 
   return (
     <div>
-      <Link href="/dashboard-student" className="text-[#338B97] text-sm">
-        ← Voltar aos meus cursos
-      </Link>
+      <BackLink href="/dashboard-student">Voltar aos meus cursos</BackLink>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2 mb-6">
         <h1 className="text-2xl font-bold text-[#163E72]">{title}</h1>
         <Link

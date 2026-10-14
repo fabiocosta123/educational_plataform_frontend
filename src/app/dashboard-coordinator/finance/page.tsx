@@ -22,6 +22,7 @@ import DashboardFinance from "@/app/components/dashboardCoordinator/finance/Dash
 import { StudentDto, Course, FinanceSummary, Payment, PaymentStatus } from "@/types/interfaces";
 import api from "../../services/api";
 import { toast } from "react-toastify";
+import { getEffectivePaymentStatus } from "@/lib/financeMonths";
 
 export default function FinancePage() {
     const [searchName, setSearchName] = useState<string>("");
@@ -135,6 +136,44 @@ export default function FinancePage() {
         }
     };
 
+    const handleUpdateAmount = async (id: number, amount: number) => {
+        if (!amount || amount <= 0) {
+            toast.error("Informe um valor maior que zero.");
+            return;
+        }
+        try {
+            await api.put(`/finance/pix/${id}/amount`, { amount });
+            const resHistory = await api.get("/finance/pix/history");
+            setSummary(resHistory.data.summary);
+            setPayments(resHistory.data.payments);
+            toast.success("Valor da mensalidade atualizado.");
+        } catch (error: unknown) {
+            const message =
+                typeof error === "object" && error && "response" in error
+                    ? (error as { response?: { data?: string | { message?: string } } }).response?.data
+                    : undefined;
+            const text = typeof message === "string" ? message : message?.message;
+            toast.error(text || "Não foi possível atualizar o valor.");
+        }
+    };
+
+    const handleRefundPix = async (id: number) => {
+        try {
+            await api.post(`/finance/pix/${id}/refund`);
+            const resHistory = await api.get("/finance/pix/history");
+            setSummary(resHistory.data.summary);
+            setPayments(resHistory.data.payments);
+            toast.success("Estorno integral solicitado na MyCredit.");
+        } catch (error: unknown) {
+            const payload =
+                typeof error === "object" && error && "response" in error
+                    ? (error as { response?: { data?: string | { message?: string } } }).response?.data
+                    : undefined;
+            const text = typeof payload === "string" ? payload : payload?.message;
+            toast.error(text || "Não foi possível estornar o PIX.");
+        }
+    };
+
     const handleGeneratePix = async () => {
         try {
             await api.post("/finance/pix", formData);
@@ -142,8 +181,17 @@ export default function FinancePage() {
             const resHistory = await api.get("/finance/pix/history");
             setSummary(resHistory.data.summary);
             setPayments(resHistory.data.payments);
-        } catch (error) {
-            console.error("Erro ao gerar cobrança:", error);
+            toast.success("Cobrança gerada.");
+        } catch (error: unknown) {
+            const payload =
+                typeof error === "object" && error && "response" in error
+                    ? (error as { response?: { data?: string | { message?: string; details?: string } } }).response?.data
+                    : undefined;
+            const text =
+                typeof payload === "string"
+                    ? payload
+                    : payload?.message || payload?.details;
+            toast.error(text || "Não foi possível gerar a cobrança.");
         }
     };
 
@@ -220,15 +268,18 @@ export default function FinancePage() {
                                             <p>Curso: {payment.course?.title}</p>
                                             <p>Professor: {payment.course?.teacher || "Não informado"}</p>
                                             <p>Valor: R$ {payment.amount ?? 0}</p>
+                                            {payment.lateFeeApplied ? (
+                                                <p className="text-amber-700">Multa de atraso (R$ 10,00) incluída.</p>
+                                            ) : null}
                                             <p
-                                                className={`font-semibold ${payment.status === "Pending"
+                                                className={`font-semibold ${getEffectivePaymentStatus(payment) === "Pending"
                                                         ? "text-yellow-600"
-                                                        : payment.status === "Paid"
+                                                        : getEffectivePaymentStatus(payment) === "Paid"
                                                             ? "text-green-600"
                                                             : "text-red-600"
                                                     }`}
                                             >
-                                                Status: {statusLabels[payment.status] ?? "Indefinido"}
+                                                Status: {statusLabels[getEffectivePaymentStatus(payment)] ?? "Indefinido"}
                                             </p>
                                             <p>
                                                 Vencimento:{" "}
@@ -238,7 +289,7 @@ export default function FinancePage() {
                                             </p>
                                             <p>
                                                 Data do pagamento:{" "}
-                                                {payment.paidAt
+                                                {getEffectivePaymentStatus(payment) === "Paid" && payment.paidAt
                                                     ? new Date(payment.paidAt).toLocaleDateString("pt-BR")
                                                     : "Pendente"}
                                             </p>
@@ -289,6 +340,8 @@ export default function FinancePage() {
                 defaultRate={summary?.defaultRate ?? 0}
                 payments={payments}
                 onMarkAsPaid={openSettle}
+                onUpdateAmount={handleUpdateAmount}
+                onRefundPix={handleRefundPix}
                 showAll={showAll}
                 setShowAll={setShowAll}
                 statusFilter={statusFilter}

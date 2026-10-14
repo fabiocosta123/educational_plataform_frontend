@@ -28,7 +28,8 @@ export default function CourseRegisterPage() {
           </h1>
 
           <p className="mt-2 text-sm text-gray-600">
-            Preencha seus dados para criar sua conta e solicitar sua matrícula.
+            A 1ª parcela de R$ 69,90 é paga agora via PIX e libera o curso.
+            As outras 11 vencem a cada 30 dias.
           </p>
         </div>
 

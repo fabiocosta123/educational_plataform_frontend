@@ -8,6 +8,7 @@ import Link from "next/link";
 import api from "../services/api";
 import { Enrollment } from "../../types/interfaces";
 import { enrollmentStatusLabel } from "../../lib/enrollmentStatus";
+import { textNavClass } from "../components/AppLinks";
 
 const canContinue = (status?: string) => {
   const value = (status ?? "").toLowerCase();
@@ -114,7 +115,7 @@ export default function StudentDashboard() {
       {!fetching && enrollments.length === 0 && (
         <p className="text-gray-600">
           Ainda não tens matrículas.{" "}
-          <Link href="/dashboard-student/available-courses" className="text-[#338B97] underline">
+          <Link href="/dashboard-student/available-courses" className={textNavClass}>
             Ver cursos disponíveis
           </Link>
         </p>
