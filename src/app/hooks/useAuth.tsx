@@ -3,6 +3,7 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import axios from "axios";
 import { User, AuthContextType } from "../../types/interfaces";
+import { clearSessionToken } from "../../lib/authSession";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -51,8 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
+    clearSessionToken();
     setUser(null);
     window.location.assign("/");
   };

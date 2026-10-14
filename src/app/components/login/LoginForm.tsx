@@ -1,25 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { jwtDecode } from "jwt-decode";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { dashboardPath } from "../../lib/dashboardPath";
+import { claimsFromToken, persistSessionToken } from "../../../lib/authSession";
 import api from "../../services/api";
 import { BackLink, textNavClass } from "../AppLinks";
 
-export interface JwtPayload {
-  nameid: string;
-  unique_name: string;
-  role: string;
-  profile: string;
-}
-
 export default function LoginForm() {
-  const router = useRouter();
   const { setUser } = useAuth();
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,27 +22,22 @@ export default function LoginForm() {
 
   const completeLogin = useCallback(
     (token: string) => {
-      localStorage.setItem("token", token);
-      const decoded = jwtDecode<JwtPayload>(token);
+      persistSessionToken(token);
+      const claims = claimsFromToken(token);
 
       setUser({
-        id: parseInt(decoded.nameid, 10),
-        name: decoded.unique_name,
-        role: decoded.role,
-        profile: parseInt(decoded.profile, 10),
+        id: claims.id,
+        name: claims.name,
+        role: claims.role,
+        profile: claims.profile,
       });
 
       toast.success("Login bem-sucedido!");
       setLogin("");
       setPassword("");
-      router.push(
-        dashboardPath({
-          role: decoded.role,
-          profile: parseInt(decoded.profile, 10),
-        })
-      );
+      window.location.assign(dashboardPath(claims));
     },
-    [router, setUser]
+    [setUser]
   );
 
   useEffect(() => {
