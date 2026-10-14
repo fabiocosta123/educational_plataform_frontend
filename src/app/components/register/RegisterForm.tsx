@@ -6,13 +6,12 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import Cleave from "cleave.js/react";
-import { jwtDecode } from "jwt-decode";
 import { RegisterFormProps } from "@/types/interfaces";
 import { isValidCpf } from "@/utils/cpf";
 import { isValidEmailFormat } from "@/utils/email";
 import api from "@/app/services/api";
 import { useAuth } from "../../hooks/useAuth";
-import type { JwtPayload } from "../login/LoginForm";
+import { claimsFromToken, persistSessionToken } from "@/lib/authSession";
 
 function getRegisterErrorMessage(error: unknown, fallback: string) {
   if (!axios.isAxiosError(error)) {
@@ -111,13 +110,13 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
         );
         const token = response.data.token;
         if (token) {
-          localStorage.setItem("token", token);
-          const decoded = jwtDecode<JwtPayload>(token);
+          persistSessionToken(token);
+          const decoded = claimsFromToken(token);
           setUser({
-            id: parseInt(decoded.nameid, 10),
-            name: decoded.unique_name,
+            id: decoded.id,
+            name: decoded.name,
             role: decoded.role,
-            profile: parseInt(decoded.profile, 10),
+            profile: decoded.profile,
           });
           toast.success("Cadastro feito. Pague a 1ª parcela (R$ 69,90) para liberar o curso.");
           router.push("/dashboard-student/finance?payFirst=1");
