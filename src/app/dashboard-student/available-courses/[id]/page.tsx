@@ -105,7 +105,7 @@ export default function AvailableCourseDetailsPage() {
               userId: user.id,
               courseId: course.id,
             });
-            toast.success("Matrícula criada. Pague a 1ª parcela para liberar o curso.");
+            toast.success("Inscrição realizada com sucesso. Pague a 1ª mensalidade para liberar o curso.");
             router.push("/dashboard-student/finance?payFirst=1");
           } catch (error: unknown) {
             const status =

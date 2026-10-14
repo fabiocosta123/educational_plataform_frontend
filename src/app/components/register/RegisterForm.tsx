@@ -13,6 +13,16 @@ import api from "@/app/services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { claimsFromToken, persistSessionToken } from "@/lib/authSession";
 
+function isTechnicalMessage(text: string) {
+  const value = text.trim();
+  if (!value) return true;
+  if (value.startsWith("<") || /<\/?[a-z][\s\S]*>/i.test(value)) return true;
+  if (value.length > 220) return true;
+  return /exception|stack trace|postgres|npgsql|mycredit|payload|baseurl|railway|html-error/i.test(
+    value
+  );
+}
+
 function getRegisterErrorMessage(error: unknown, fallback: string) {
   if (!axios.isAxiosError(error)) {
     return fallback;
@@ -20,25 +30,21 @@ function getRegisterErrorMessage(error: unknown, fallback: string) {
 
   const data = error.response?.data;
 
-  if (typeof data === "string" && data.trim()) {
-    return data;
+  if (typeof data === "string" && data.trim() && !isTechnicalMessage(data)) {
+    return data.trim();
   }
 
   if (data && typeof data === "object") {
     const payload = data as Record<string, unknown>;
 
-    if (typeof payload.details === "string" && payload.details.trim()) {
-      return payload.details;
-    }
-
-    if (typeof payload.message === "string" && payload.message.trim()) {
-      return payload.message;
+    if (typeof payload.message === "string" && payload.message.trim() && !isTechnicalMessage(payload.message)) {
+      return payload.message.trim();
     }
 
     if (payload.errors && typeof payload.errors === "object") {
       const messages = Object.values(payload.errors as Record<string, unknown>)
         .flat()
-        .filter((item): item is string => typeof item === "string");
+        .filter((item): item is string => typeof item === "string" && !isTechnicalMessage(item));
 
       if (messages.length > 0) {
         return messages.join(" ");
@@ -122,7 +128,7 @@ export default function RegisterForm({ courseId }: RegisterFormProps) {
             role: decoded.role,
             profile: decoded.profile,
           });
-          toast.success("Cadastro feito. Pague a 1ª parcela (R$ 69,90) para liberar o curso.");
+          toast.success("Inscrição realizada com sucesso. Pague a 1ª mensalidade para liberar o curso.");
           router.push("/dashboard-student/finance?payFirst=1");
           return;
         }

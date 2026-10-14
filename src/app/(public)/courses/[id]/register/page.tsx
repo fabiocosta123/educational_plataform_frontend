@@ -28,8 +28,8 @@ export default function CourseRegisterPage() {
           </h1>
 
           <p className="mt-2 text-sm text-gray-600">
-            A 1ª parcela de R$ 69,90 é paga agora via PIX e libera o curso.
-            As outras 11 vencem a cada 30 dias.
+            Inscreva-se e pague a 1ª mensalidade via PIX para liberar o curso.
+            As demais vencem a cada 30 dias.
           </p>
         </div>
 
