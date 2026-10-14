@@ -35,7 +35,8 @@ export default function LoginForm() {
       toast.success("Login bem-sucedido!");
       setLogin("");
       setPassword("");
-      window.location.assign(dashboardPath(claims));
+      const next = dashboardPath(claims);
+      window.location.assign(`/auth/continue?next=${encodeURIComponent(next)}`);
     },
     [setUser]
   );

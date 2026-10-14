@@ -3,7 +3,7 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import axios from "axios";
 import { User, AuthContextType } from "../../types/interfaces";
-import { clearSessionToken } from "../../lib/authSession";
+import { claimsFromToken, clearSessionToken } from "../../lib/authSession";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -38,9 +38,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           profile: Number(data.profile),
           courses: data.courses,
         });
-      } catch (err: any) {
-        if (err.response?.status === 401) {
-          localStorage.removeItem("token");
+      } catch (err: unknown) {
+        const status =
+          typeof err === "object" && err && "response" in err
+            ? (err as { response?: { status?: number } }).response?.status
+            : undefined;
+        if (status === 401) {
+          try {
+            const claims = claimsFromToken(token);
+            if (Number.isFinite(claims.id) && claims.id > 0) {
+              setUser({
+                id: claims.id,
+                name: claims.name,
+                role: claims.role,
+                profile: claims.profile,
+              });
+              return;
+            }
+          } catch {
+            /* token inválido */
+          }
+          clearSessionToken();
         }
         setUser(null);
       } finally {
